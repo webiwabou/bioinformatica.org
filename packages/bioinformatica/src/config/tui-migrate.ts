@@ -8,7 +8,15 @@ import { Global } from "@bioinformatica/core/global"
 import { Filesystem } from "@/util/filesystem"
 import * as ConfigPaths from "@/config/paths"
 
-const TUI_SCHEMA_URL = "https://bioinformatica.org/tui.json"
+// The `$schema` URL stamped into the `tui.json` this migration writes.
+//
+// Same reasoning as CONFIG_SCHEMA_URL in config.ts, and the same fix: it was
+// `https://bioinformatica.org/tui.json`, a domain this project does not own,
+// so the migration wrote a schema reference into the user's own config file
+// that their editor would report as broken forever. `undefined` skips the key
+// entirely until a schema is actually published at a stable URL — pointing an
+// editor at nothing beats pointing it somewhere wrong.
+const TUI_SCHEMA_URL: string | undefined = undefined
 
 const decodeTheme = Schema.decodeUnknownOption(Schema.String)
 const decodeRecord = Schema.decodeUnknownOption(Schema.Record(Schema.String, Schema.Unknown))
@@ -50,9 +58,8 @@ export async function migrateTuiConfig(input: MigrateInput) {
     const targetExists = await Filesystem.exists(target)
     if (targetExists) continue
 
-    const payload: Record<string, unknown> = {
-      $schema: TUI_SCHEMA_URL,
-    }
+    const payload: Record<string, unknown> = {}
+    if (TUI_SCHEMA_URL) payload.$schema = TUI_SCHEMA_URL
     if (extracted.theme !== undefined) payload.theme = extracted.theme
     if (extracted.keybinds !== undefined) payload.keybinds = extracted.keybinds
     if (tui) Object.assign(payload, tui)
