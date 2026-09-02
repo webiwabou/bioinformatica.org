@@ -21,7 +21,6 @@ import { useRoute, useRouteData } from "../../context/route"
 import { useProject } from "../../context/project"
 import { useSync } from "../../context/sync"
 import { useEvent } from "../../context/event"
-import { SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
 import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
@@ -1164,8 +1163,7 @@ export function Session() {
                               marginTop={1}
                               flexShrink={0}
                               border={["left"]}
-                              customBorderChars={SplitBorder.customBorderChars}
-                              borderColor={theme.backgroundPanel}
+                              borderColor={theme.border}
                             >
                               <box
                                 paddingTop={1}
@@ -1336,8 +1334,7 @@ function UserMessage(props: {
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
           border={["left"]}
-          borderColor={color()}
-          customBorderChars={SplitBorder.customBorderChars}
+          borderColor={theme.border}
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
@@ -1351,7 +1348,7 @@ function UserMessage(props: {
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
-            backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
+            backgroundColor={hover() ? theme.backgroundPanel : undefined}
             flexShrink={0}
           >
             <text fg={theme.text}>{text()}</text>
@@ -1392,13 +1389,7 @@ function UserMessage(props: {
         </box>
       </Show>
       <Show when={compaction()}>
-        <box
-          marginTop={1}
-          border={["top"]}
-          title=" Compaction "
-          titleAlignment="center"
-          borderColor={theme.borderActive}
-        />
+        <box marginTop={1} border={["top"]} title=" Compaction " titleAlignment="center" borderColor={theme.border} />
       </Show>
     </>
   )
@@ -1476,9 +1467,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           paddingBottom={1}
           paddingLeft={2}
           marginTop={1}
-          backgroundColor={theme.backgroundPanel}
-          customBorderChars={SplitBorder.customBorderChars}
-          borderColor={theme.error}
+          borderColor={theme.border}
         >
           <text fg={theme.textMuted}>{errorMessage(props.message.error)}</text>
         </box>
@@ -1898,13 +1887,25 @@ export function InlineToolRow(props: {
         <Match when={true}>
           <Show
             fallback={
-              <text
-                paddingLeft={3}
-                fg={props.color}
-                attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}
-              >
-                ~ {props.pending}
-              </text>
+              // The same two column icon cell as the resolved row below, so a
+              // call does not shift three columns left the instant it finishes.
+              // That jump was the dominant motion on screen across a campaign.
+              <box flexDirection="row">
+                <text
+                  width={INLINE_TOOL_ICON_WIDTH}
+                  fg={props.color}
+                  attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}
+                >
+                  ~
+                </text>
+                <text
+                  flexGrow={1}
+                  fg={props.color}
+                  attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}
+                >
+                  {props.pending}
+                </text>
+              </box>
             }
             when={props.complete || props.failed}
           >
@@ -1956,9 +1957,8 @@ function BlockTool(props: {
       paddingLeft={2}
       marginTop={1}
       gap={1}
-      backgroundColor={hover() ? theme.backgroundMenu : theme.backgroundPanel}
-      customBorderChars={SplitBorder.customBorderChars}
-      borderColor={theme.background}
+      backgroundColor={hover() ? theme.backgroundPanel : undefined}
+      borderColor={theme.border}
       onMouseOver={() => props.onClick && setHover(true)}
       onMouseOut={() => setHover(false)}
       onMouseUp={() => {
