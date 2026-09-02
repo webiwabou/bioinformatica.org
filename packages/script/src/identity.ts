@@ -24,8 +24,20 @@ const REPOSITORY = process.env["GITHUB_REPOSITORY"] ?? "webiwabou/bioinformatica
  */
 const DISTRIBUTION_NAME: string | undefined = "bioinformatica"
 
-/** The project's own domain, used for docs links and the config `$schema`. */
-const HOMEPAGE: string | undefined = "https://bioinformatica.org"
+/**
+ * Where this project publishes its own pages: the install script that the
+ * landing page tells people to pipe into a shell, and any docs link that is not
+ * the repository itself.
+ *
+ * It is deliberately not `https://bioinformatica.org`. That domain resolves —
+ * to somebody else's server — and this project does not own it, so every URL
+ * built from it was either dead or, worse, live and outside our hands: the curl
+ * upgrade path fetched `/install` from it and piped the response into a shell.
+ * Until a domain is actually owned, the GitHub Pages site published by
+ * `.github/workflows/pages.yml` is the real one. The product keeps its name;
+ * a name is not an address.
+ */
+const HOMEPAGE: string | undefined = "https://webiwabou.github.io/bioinformatica.org"
 
 /** The name as written for a human: in the TUI, the docs, and any citation. */
 export const BRAND = "Bioinformática.org"
@@ -60,6 +72,15 @@ export const Identity = {
   },
   get homepage() {
     return HOMEPAGE
+  },
+  /**
+   * The install script, served beside the landing page by the pages workflow —
+   * which copies the repository's own `install` rather than keeping a second
+   * copy. Both the first install (`curl ... | bash`) and every self-upgrade
+   * afterwards read this one URL.
+   */
+  get installScriptUrl() {
+    return HOMEPAGE ? `${HOMEPAGE}/install` : undefined
   },
   get containerImage() {
     return DISTRIBUTION_NAME ? `ghcr.io/${owner}/${DISTRIBUTION_NAME}` : undefined

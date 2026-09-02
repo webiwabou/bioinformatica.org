@@ -160,9 +160,21 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
       return "sh"
     })
 
+    // Re-runs the published installer, pinned to the requested version.
+    //
+    // The URL used to be hardcoded to `https://bioinformatica.org/install`, a
+    // domain this project does not own: the body of whatever that host served
+    // was piped straight into a shell. It now comes from identity.ts, like
+    // every other publish target, so it can only ever point where this project
+    // actually publishes.
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://bioinformatica.org/install"))
+        const url = Identity.installScriptUrl
+        if (!url)
+          return yield* Effect.fail(
+            new UpgradeFailedError({ stderr: "No install script URL is set; see packages/script/src/identity.ts" }),
+          )
+        const response = yield* httpOk.execute(HttpClientRequest.get(url))
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -179,7 +191,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
           stderr: result.stderr.toString("utf8"),
         }
       },
-      Effect.mapError(() => new UpgradeFailedError({ stderr: upgradeFailure("curl") })),
+      Effect.mapError((error) =>
+        error instanceof UpgradeFailedError ? error : new UpgradeFailedError({ stderr: upgradeFailure("curl") }),
+      ),
     )
 
     const result: Interface = {
