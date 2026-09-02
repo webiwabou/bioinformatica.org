@@ -52,3 +52,11 @@ work/
 
 # Resultados de pipelines (el `--outdir` por defecto de nf-core).
 results/
+
+# Bitácora de desarrollo: material interno de investigación heredado del
+# repositorio privado del que deriva este proyecto — planes de fase, plan de
+# evaluación, preregistro, plan de pruebas manual, specs, estado de sesiones del
+# agente, corpus congelados, y un bundle con las 54 revisiones de aquella
+# historia. Nada de esto es producto y nada de esto se publica: se conserva sólo
+# porque el repositorio de origen se elimina.
+.bitacora/
