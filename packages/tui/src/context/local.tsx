@@ -80,15 +80,18 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       const [agentStore, setAgentStore] = createStore({
         current: undefined as string | undefined,
       })
-      const colors = createMemo(() => [
-        theme.secondary,
-        theme.accent,
-        theme.success,
-        theme.warning,
-        theme.primary,
-        theme.error,
-        theme.info,
-      ])
+      // El color del producto es uno: el teal de la marca.
+      //
+      // Esta lista se indexaba por la posicion del agente en la lista visible, y el
+      // agente por defecto es el indice 0, asi que el elemento coloreado mas grande
+      // del producto (el rail del prompt, el del mensaje del usuario, la firma del
+      // turno y el indicador de ocupado) salia azul cielo #38bdf8, un swatch de
+      // Tailwind heredado de tokyonight, mientras el teal de la marca se quedaba en
+      // el indice 4 y ningun agente por defecto llegaba a el. El acceso es modular,
+      // asi que un solo elemento vale para cualquier numero de agentes; el que
+      // quiera distinguirse pone su propio `color` en su definicion, que `color()`
+      // ya honra tanto si es una clave de tema como un hexadecimal.
+      const colors = createMemo(() => [theme.primary])
       return {
         list() {
           return agents()

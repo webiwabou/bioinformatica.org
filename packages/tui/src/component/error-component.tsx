@@ -13,31 +13,34 @@ export function ErrorComponent(props: { error: Error; reset: () => void; mode?: 
   const clipboard = useClipboard()
   const [copied, setCopied] = createSignal(false)
 
-  // Safe fallback palette per mode (mirrors theme/assets/bioinformatica.json) since the
-  // theme context may be the thing that crashed.
+  // Paleta de respaldo, porque lo que se ha roto puede ser justo el contexto del
+  // tema. Copiada a mano de theme/assets/bioinformatica.json, que es lo que el
+  // comentario decia antes y no era cierto: llevaba la paleta del tema de
+  // escritorio, con su naranja #fab283 y su fondo #0a0a0a, asi que la unica
+  // pantalla que aparece cuando todo falla era la unica que no era del producto.
   const isLight = props.mode === "light"
   const colors = isLight
     ? {
         bg: "#ffffff",
-        element: "#f5f5f5",
-        borderSubtle: "#d4d4d4",
-        text: "#1a1a1a",
-        muted: "#8a8a8a",
-        primary: "#3b7dd8",
+        element: "#f6faf9",
+        borderSubtle: "#d7e3df",
+        text: "#132018",
+        muted: "#5f6f6a",
+        primary: "#0d9488",
         onPrimary: "#ffffff",
-        error: "#d1383d",
-        success: "#3d9a57",
+        error: "#dc2626",
+        success: "#16a34a",
       }
     : {
-        bg: "#0a0a0a",
-        element: "#1e1e1e",
-        borderSubtle: "#3c3c3c",
-        text: "#eeeeee",
-        muted: "#808080",
-        primary: "#fab283",
-        onPrimary: "#0a0a0a",
-        error: "#e06c75",
-        success: "#7fd88f",
+        bg: "#0a0f0e",
+        element: "#111917",
+        borderSubtle: "#232f2b",
+        text: "#eaeaea",
+        muted: "#8a938f",
+        primary: "#2dd4bf",
+        onPrimary: "#0a0f0e",
+        error: "#f87171",
+        success: "#4ade80",
       }
 
   const message = props.error.message || "An unknown error occurred."

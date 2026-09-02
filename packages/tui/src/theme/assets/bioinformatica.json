@@ -12,7 +12,7 @@
     "darkStep9": "#2dd4bf",
     "darkStep10": "#5eead4",
     "darkStep11": "#8a938f",
-    "darkStep12": "#eaeaea",
+    "darkStep12": "#e8edeb",
     "darkSecondary": "#38bdf8",
     "darkAccent": "#a78bfa",
     "darkRed": "#f87171",
@@ -69,6 +69,10 @@
       "dark": "darkCyan",
       "light": "lightCyan"
     },
+    "selectedListItemText": {
+      "dark": "darkStep1",
+      "light": "lightStep12"
+    },
     "text": {
       "dark": "darkStep12",
       "light": "lightStep12"
@@ -94,8 +98,8 @@
       "light": "lightStep7"
     },
     "borderActive": {
-      "dark": "darkStep8",
-      "light": "lightStep8"
+      "dark": "darkStep9",
+      "light": "lightStep9"
     },
     "borderSubtle": {
       "dark": "darkStep6",
@@ -106,16 +110,16 @@
       "light": "#1e725c"
     },
     "diffRemoved": {
-      "dark": "#c53b53",
-      "light": "#c53b53"
+      "dark": "darkRed",
+      "light": "lightRed"
     },
     "diffContext": {
-      "dark": "#828bb8",
-      "light": "#7086b5"
+      "dark": "darkStep11",
+      "light": "lightStep11"
     },
     "diffHunkHeader": {
-      "dark": "#828bb8",
-      "light": "#7086b5"
+      "dark": "darkStep11",
+      "light": "lightStep11"
     },
     "diffHighlightAdded": {
       "dark": "#b8db87",
@@ -154,8 +158,8 @@
       "light": "lightStep12"
     },
     "markdownHeading": {
-      "dark": "darkAccent",
-      "light": "lightAccent"
+      "dark": "darkStep9",
+      "light": "lightStep9"
     },
     "markdownLink": {
       "dark": "darkStep9",
