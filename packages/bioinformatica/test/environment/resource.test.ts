@@ -2,8 +2,14 @@ import { describe, expect, test } from "bun:test"
 import type { Environment } from "../../src/environment/detect"
 import { Resource } from "../../src/environment/resource"
 
-function report(cpuCores: number, memoryTotalMb: number, memoryAvailableMb?: number): Environment.Report {
+function report(
+  cpuCores: number,
+  memoryTotalMb: number,
+  memoryAvailableMb?: number,
+  platform: Environment.Platform = { os: "linux" },
+): Environment.Report {
   return {
+    platform,
     nextflow: { installed: true },
     java: { installed: true },
     nfcoreTools: { installed: true },
@@ -57,5 +63,32 @@ describe("environment.resource ceiling and readiness", () => {
     expect(snippet).toContain("resourceLimits")
     expect(snippet).toContain("cpus: 8")
     expect(snippet).toMatch(/memory: '\d+\.GB'/)
+  })
+})
+
+describe("environment.resource under WSL", () => {
+  const wsl = (version: number): Environment.Platform => ({
+    os: "linux",
+    wsl: { version, cwd: "/home/x", cwdOnWindowsDrive: false },
+  })
+
+  test("says the memory figure is a raisable VM ceiling on WSL 2", () => {
+    const rationale = Resource.readiness(report(8, 16384, 16384, wsl(2))).rationale
+    expect(rationale).toContain("WSL 2 virtual machine")
+    expect(rationale).toContain(".wslconfig")
+  })
+
+  test("says nothing extra on WSL 1, where the figure is the machine's own", () => {
+    expect(Resource.readiness(report(8, 16384, 16384, wsl(1))).rationale).not.toContain("wslconfig")
+  })
+
+  test("says nothing extra on plain Linux", () => {
+    expect(Resource.readiness(report(8, 16384)).rationale).not.toContain("wslconfig")
+  })
+
+  // The ceiling is read from /proc/meminfo, which inside WSL 2 already reports
+  // the VM's own memory. The note explains the number; it must not change it.
+  test("does not alter the ceiling it explains", () => {
+    expect(Resource.ceiling(report(8, 16384, 16384, wsl(2)))).toEqual(Resource.ceiling(report(8, 16384, 16384)))
   })
 })

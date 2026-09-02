@@ -50,7 +50,38 @@ const Gpu = Schema.Struct({
 // present: Docker primary, conda/mamba fallback, otherwise none.
 const ContainerBackend = Schema.Literals(["docker", "conda", "none"])
 
+// Running inside a WSL distribution, which is how this stack reaches a Windows
+// machine at all. Three things follow from it and none of them is cosmetic:
+//
+//   - The working directory may sit on a Windows drive, mounted into the
+//     distribution across a bridge slow enough to change the shape of a run.
+//   - The memory reported here is the ceiling of a virtual machine, roughly
+//     half the computer's RAM by default, and the scientist can raise it.
+//   - Docker usually means Docker Desktop with integration enabled, not a
+//     daemon this distribution starts.
+const Wsl = Schema.Struct({
+  // 2 for WSL 2 (a real kernel in a VM), 1 for the original translation layer.
+  version: Schema.Number,
+  distro: Schema.optional(Schema.String),
+  // The current working directory as the distribution sees it.
+  cwd: Schema.String,
+  // ...and whether that directory is on a Windows drive (/mnt/c and friends).
+  cwdOnWindowsDrive: Schema.Boolean,
+})
+export type Wsl = Schema.Schema.Type<typeof Wsl>
+
+const Platform = Schema.Struct({
+  os: Schema.Literals(["linux", "darwin", "windows", "other"]),
+  // Set only when running inside a WSL distribution.
+  wsl: Schema.optional(Wsl),
+  // Windows only: whether there is any user distribution of WSL to run in.
+  // Undefined everywhere else, because the question does not arise.
+  wslAvailable: Schema.optional(Schema.Boolean),
+})
+export type Platform = Schema.Schema.Type<typeof Platform>
+
 export const Report = Schema.Struct({
+  platform: Platform,
   nextflow: ToolStatus,
   java: ToolStatus,
   nfcoreTools: ToolStatus,
@@ -78,6 +109,40 @@ export const use = serviceUse(Service)
 function match(text: string, re: RegExp): string | undefined {
   const m = text.match(re)
   return m?.[1]?.trim() || undefined
+}
+
+// Read a WSL environment out of the kernel release string.
+//
+// WSL 2 reports something like `5.15.90.1-microsoft-standard-WSL2`, WSL 1 like
+// `4.4.0-19041-Microsoft`. Both carry "microsoft"; only the second generation
+// says WSL2, and that distinction decides whether the memory figure is a VM
+// ceiling or the machine's own.
+export function parseWsl(release: string, cwd: string, distro?: string): Wsl | undefined {
+  if (!/microsoft/i.test(release)) return undefined
+  return {
+    version: /wsl2/i.test(release) ? 2 : 1,
+    distro: distro || undefined,
+    cwd,
+    // A trailing slash so that /mnt/c itself matches, not just paths under it.
+    cwdOnWindowsDrive: /^\/mnt\/[a-z]\//i.test(cwd.endsWith("/") ? cwd : cwd + "/"),
+  }
+}
+
+// Distributions worth installing into, out of the output of `wsl.exe -l -q`.
+//
+// Two traps live in that output. It is UTF-16, so read as UTF-8 it arrives with
+// a null byte between every character and a byte order mark in front; and
+// Docker Desktop and Rancher Desktop register distributions of their own, which
+// are service machines and not places to install anything.
+const SERVICE_DISTROS = new Set(["docker-desktop", "docker-desktop-data", "rancher-desktop", "rancher-desktop-data"])
+
+export function parseWslDistros(stdout: string): string[] {
+  return stdout
+    .replace(/\0/g, "")
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !SERVICE_DISTROS.has(line.toLowerCase()))
 }
 
 async function readMemInfoMb(): Promise<{ total?: number; available?: number }> {
@@ -166,6 +231,25 @@ const layer = Layer.effect(
       return { installed: false }
     })
 
+    // Where this is running. On Windows the question is not what is installed
+    // but whether there is a Linux to install it in: nothing in this stack runs
+    // natively there, so every other probe below is going to come back empty
+    // and the remediation plan needs to say why.
+    const detectPlatform = Effect.fnUntraced(function* () {
+      if (process.platform === "win32") {
+        const r = yield* probe(["wsl.exe", "-l", "-q"])
+        const distros = parseWslDistros(r.stdout)
+        return { os: "windows" as const, wslAvailable: r.code === 0 && distros.length > 0 }
+      }
+      if (process.platform === "darwin") return { os: "darwin" as const }
+      if (process.platform !== "linux") return { os: "other" as const }
+      const release = yield* Effect.promise(() =>
+        fs.readFile("/proc/sys/kernel/osrelease", "utf8").catch(() => ""),
+      )
+      const wsl = parseWsl(release, process.cwd(), process.env["WSL_DISTRO_NAME"])
+      return wsl ? { os: "linux" as const, wsl } : { os: "linux" as const }
+    })
+
     const detectGpu = Effect.fnUntraced(function* () {
       const r = yield* probe([
         "nvidia-smi",
@@ -184,8 +268,9 @@ const layer = Layer.effect(
     })
 
     const detect = Effect.fn("Environment.detect")(function* () {
-      const [nextflow, java, nfcoreTools, nfTest, docker, conda, gpu, mem] = yield* Effect.all(
+      const [platform, nextflow, java, nfcoreTools, nfTest, docker, conda, gpu, mem] = yield* Effect.all(
         [
+          detectPlatform(),
           detectNextflow(),
           detectJava(),
           detectNfcore(),
@@ -202,6 +287,7 @@ const layer = Layer.effect(
       const cpuCores = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length
 
       return Report.make({
+        platform,
         nextflow,
         java,
         nfcoreTools,
@@ -218,12 +304,29 @@ const layer = Layer.effect(
   }),
 )
 
+// One line for the platform, saying the part that changes what happens next.
+export function describePlatform(platform: Platform): string {
+  if (platform.os === "windows") {
+    return platform.wslAvailable
+      ? "Windows, running natively. WSL is installed but this process is not inside it, and the nf-core stack does not run natively here"
+      : "Windows, running natively, with no WSL distribution installed. The nf-core stack does not run natively here"
+  }
+  if (!platform.wsl) return platform.os
+  const wsl = platform.wsl
+  const name = wsl.distro ? ` (${wsl.distro})` : ""
+  const where = wsl.cwdOnWindowsDrive
+    ? `. Working directory ${wsl.cwd} is on a Windows drive, reached across the bridge to Windows and slow for pipeline I/O`
+    : ""
+  return `Linux inside WSL ${wsl.version}${name} on Windows${where}`
+}
+
 export function summarize(report: Report): string {
   const yes = (b: boolean) => (b ? "yes" : "no")
   const versioned = (s: { installed: boolean; version?: string }) =>
     s.installed ? s.version ?? "installed (version unknown)" : "not found"
   const lines = [
     "nf-core execution environment:",
+    `- Platform: ${describePlatform(report.platform)}`,
     `- Nextflow: ${versioned(report.nextflow)}`,
     `- Java (Nextflow runtime): ${versioned(report.java)}`,
     `- nf-core tools (CLI): ${versioned(report.nfcoreTools)}`,

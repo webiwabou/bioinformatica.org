@@ -82,25 +82,36 @@ export interface Readiness {
   readonly rationale: string
 }
 
+// Under WSL 2 the memory this machine reports is not the memory the scientist
+// bought. It is the ceiling of the virtual machine, which defaults to about half
+// the host's RAM and is raised from the Windows side in .wslconfig. Without this
+// sentence, someone with 32 GB is told they have 16 and has no reason to suspect
+// the figure is a setting rather than a fact.
+function wslMemoryNote(report: Environment.Report): string {
+  if (report.platform.wsl?.version !== 2) return ""
+  return " This is a WSL 2 virtual machine, so that memory is its ceiling (about half the computer's RAM by default), not the RAM installed. It can be raised from Windows by setting memory= in %UserProfile%\\.wslconfig and running wsl --shutdown."
+}
+
 // A proactive judgement of whether this machine can comfortably run a real
 // pipeline, before any specific step request is known.
 export function readiness(report: Environment.Report): Readiness {
   const c = ceiling(report)
+  const note = wslMemoryNote(report)
   if (c.memoryMb < FLOOR_MEMORY_MB || c.cpus < FLOOR_CPUS) {
     return {
       level: "risky",
-      rationale: `Only ~${c.memoryGb} GB usable memory and ${c.cpus} core(s) after OS headroom. Many pipeline steps need more; a real run may fail. Confirm before running real data, and expect to cap resources.`,
+      rationale: `Only ~${c.memoryGb} GB usable memory and ${c.cpus} core(s) after OS headroom. Many pipeline steps need more; a real run may fail. Confirm before running real data, and expect to cap resources.${note}`,
     }
   }
   if (c.memoryMb < 8192) {
     return {
       level: "tight",
-      rationale: `~${c.memoryGb} GB usable memory and ${c.cpus} cores. Workable for lighter pipelines; heavier steps may need resource limits or may not fit.`,
+      rationale: `~${c.memoryGb} GB usable memory and ${c.cpus} cores. Workable for lighter pipelines; heavier steps may need resource limits or may not fit.${note}`,
     }
   }
   return {
     level: "comfortable",
-    rationale: `~${c.memoryGb} GB usable memory and ${c.cpus} cores available for the run.`,
+    rationale: `~${c.memoryGb} GB usable memory and ${c.cpus} cores available for the run.${note}`,
   }
 }
 
@@ -116,7 +127,7 @@ export function summarizeCeiling(report: Environment.Report): string {
   const r = readiness(report)
   return [
     `Recommended resource ceiling for a run on this machine: ${c.cpus} cpus, ${c.memoryGb} GB memory (OS headroom left).`,
-    `Readiness: ${r.level} — ${r.rationale}`,
+    `Readiness: ${r.level}. ${r.rationale}`,
     "",
     "To apply it, write this Nextflow config and pass it with -c:",
     configSnippet(c).trimEnd(),

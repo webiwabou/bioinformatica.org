@@ -1,4 +1,4 @@
-import { describe, expect } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { makeGlobalNode } from "@bioinformatica/core/effect/app-node"
 import { LayerNode } from "@bioinformatica/core/effect/layer-node"
 import { Effect, Layer, Stream } from "effect"
@@ -112,4 +112,43 @@ describe("environment.detect", () => {
       expect(report.containerBackend).toBe("conda")
     }),
   )
+})
+
+// The two things that would fail silently: a kernel release string that has to
+// be read correctly to know which WSL this is, and the output of `wsl.exe -l -q`,
+// which is UTF-16 and arrives full of null bytes when read as UTF-8.
+describe("environment.detect WSL parsing", () => {
+  test("recognises WSL 2 from the kernel release", () => {
+    const wsl = Environment.parseWsl("5.15.90.1-microsoft-standard-WSL2", "/home/x", "Ubuntu")!
+    expect(wsl.version).toBe(2)
+    expect(wsl.distro).toBe("Ubuntu")
+    expect(wsl.cwdOnWindowsDrive).toBe(false)
+  })
+
+  test("recognises WSL 1, which reports microsoft but not WSL2", () => {
+    expect(Environment.parseWsl("4.4.0-19041-Microsoft", "/home/x")!.version).toBe(1)
+  })
+
+  test("is not WSL on an ordinary kernel", () => {
+    expect(Environment.parseWsl("6.9.3-arch1-1", "/home/x")).toBeUndefined()
+  })
+
+  test("spots a working directory on a Windows drive, including /mnt/c itself", () => {
+    const release = "5.15.90.1-microsoft-standard-WSL2"
+    expect(Environment.parseWsl(release, "/mnt/c/Users/x/datos")!.cwdOnWindowsDrive).toBe(true)
+    expect(Environment.parseWsl(release, "/mnt/c")!.cwdOnWindowsDrive).toBe(true)
+    expect(Environment.parseWsl(release, "/mnt/d/datos")!.cwdOnWindowsDrive).toBe(true)
+    expect(Environment.parseWsl(release, "/home/x/mnt/c")!.cwdOnWindowsDrive).toBe(false)
+    expect(Environment.parseWsl(release, "/mnt/wsl/instances")!.cwdOnWindowsDrive).toBe(false)
+  })
+
+  test("reads distribution names out of UTF-16 output with a byte order mark", () => {
+    const utf16ish = "\uFEFF\0U\0b\0u\0n\0t\0u\0\r\n\0D\0e\0b\0i\0a\0n\0\r\n"
+    expect(Environment.parseWslDistros(utf16ish)).toEqual(["Ubuntu", "Debian"])
+  })
+
+  test("ignores the distributions Docker Desktop registers for itself", () => {
+    expect(Environment.parseWslDistros("docker-desktop\ndocker-desktop-data\nUbuntu\n")).toEqual(["Ubuntu"])
+    expect(Environment.parseWslDistros("docker-desktop\n")).toEqual([])
+  })
 })
