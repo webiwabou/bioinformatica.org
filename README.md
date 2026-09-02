@@ -47,11 +47,26 @@ Para compilar desde el código fuente hace falta además **[Bun](https://bun.sh)
 
 ## Instalación
 
-Todavía no hay releases publicadas, así que la vía real hoy es compilar desde el código:
+```bash
+curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash
+```
+
+Descarga el binario que corresponde a la plataforma desde
+[GitHub Releases](https://github.com/webiwabou/bioinformatica.org/releases), lo deja en
+`~/.bioinformatica/bin` y añade esa carpeta al `PATH`. No pide root ni toca nada fuera del
+directorio personal. Los mismos pasos, explicados para quien no vive en la terminal, están
+en <https://webiwabou.github.io/bioinformatica.org/> — la página vive en [`www/`](./www) y
+sirve el propio `install` de este repositorio, no una copia.
+
+El instalador acepta `--version <v>` para fijar una versión, `--binary <ruta>` para
+instalar un binario ya compilado y `--no-modify-path` para no tocar la configuración del
+shell; `BIOINFORMATICA_INSTALL_REPO` cambia el repositorio de origen.
+
+Compilar desde el código:
 
 ```bash
 git clone https://github.com/webiwabou/bioinformatica.org.git
-cd bioinformatica
+cd bioinformatica.org
 bun install
 
 cd packages/bioinformatica
@@ -67,10 +82,6 @@ Para trabajar sobre el código sin compilar:
 bun dev -- --help              # el CLI desde las fuentes
 bun dev -- /ruta/al/proyecto   # la TUI interactiva en ese directorio
 ```
-
-El script `./install` de la raíz descarga un binario desde GitHub Releases; servirá cuando
-haya releases publicadas (el repositorio de origen se puede fijar con
-`BIOINFORMATICA_INSTALL_REPO`).
 
 ## Primeros pasos
 

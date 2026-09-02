@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instalar Bioinformática.org</title>
+    <meta
+      name="description"
+      content="Instala Bioinformática.org, el agente de terminal que ejecuta pipelines de nf-core a partir de una pregunta en lenguaje natural. Una línea en la terminal."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content="Instalar Bioinformática.org" />
+    <meta
+      property="og:description"
+      content="Un agente de terminal para bioinformática. Se instala con una línea."
+    />
+    <meta property="og:type" content="website" />
+    <style>
+      /* La paleta es la del propio agente: packages/tui/src/theme/assets/bioinformatica.json,
+         para que la página y la terminal se parezcan a la misma cosa. */
+      :root {
+        --bg: #ffffff;
+        --surface: #f6faf9;
+        --surface-2: #eef4f2;
+        --border: #d7e3df;
+        --border-strong: #c6d6d1;
+        --text: #132018;
+        --muted: #5f6f6a;
+        --primary: #0d9488;
+        --primary-strong: #0f766e;
+        --term-bg: #0a0f0e;
+        --term-text: #eaeaea;
+        --term-muted: #8a938f;
+        --term-primary: #2dd4bf;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0f0e;
+          --surface: #111917;
+          --surface-2: #1a2320;
+          --border: #232f2b;
+          --border-strong: #374742;
+          --text: #eaeaea;
+          --muted: #8a938f;
+          --primary: #2dd4bf;
+          --primary-strong: #5eead4;
+          --term-bg: #050807;
+          --term-text: #eaeaea;
+          --term-muted: #8a938f;
+          --term-primary: #2dd4bf;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 17px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .wrap {
+        max-width: 46rem;
+        margin: 0 auto;
+        padding: 3rem 1.25rem 5rem;
+      }
+
+      /* Cabecera ------------------------------------------------------- */
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 3.5rem;
+      }
+
+      .mark {
+        width: 3.25rem;
+        height: 3.25rem;
+        flex: none;
+      }
+
+      .mark .outer {
+        fill: var(--primary);
+      }
+
+      .mark .inner {
+        fill: none;
+        stroke: var(--muted);
+        stroke-width: 2.5;
+      }
+
+      .brand {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+      }
+
+      .tagline {
+        color: var(--muted);
+        font-size: 0.9375rem;
+        line-height: 1.3;
+      }
+
+      /* Texto ---------------------------------------------------------- */
+
+      h1 {
+        font-size: clamp(1.9rem, 5vw, 2.6rem);
+        line-height: 1.15;
+        letter-spacing: -0.025em;
+        margin: 0 0 1rem;
+        font-weight: 650;
+      }
+
+      .lead {
+        font-size: 1.125rem;
+        color: var(--muted);
+        margin: 0 0 3.5rem;
+        max-width: 38rem;
+      }
+
+      h2 {
+        font-size: 1.125rem;
+        letter-spacing: -0.01em;
+        margin: 0 0 0.5rem;
+        font-weight: 620;
+      }
+
+      p {
+        margin: 0 0 1rem;
+      }
+
+      a {
+        color: var(--primary-strong);
+        text-underline-offset: 0.2em;
+        text-decoration-thickness: 1px;
+      }
+
+      a:hover {
+        color: var(--primary);
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 0.9em;
+        background: var(--surface-2);
+        border-radius: 4px;
+        padding: 0.1em 0.35em;
+      }
+
+      /* Pasos ---------------------------------------------------------- */
+
+      .step {
+        display: grid;
+        grid-template-columns: 2.25rem 1fr;
+        gap: 0 1rem;
+        margin-bottom: 3rem;
+      }
+
+      .num {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        border: 1.5px solid var(--primary);
+        color: var(--primary-strong);
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0.15rem;
+      }
+
+      .step > .body > :last-child {
+        margin-bottom: 0;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 0.9375rem;
+      }
+
+      /* Tarjetas de sistema operativo ---------------------------------- */
+
+      .os {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0;
+      }
+
+      .os div {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+      }
+
+      .os strong {
+        display: block;
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      kbd {
+        font-family: inherit;
+        font-size: 0.875em;
+        background: var(--surface-2);
+        border: 1px solid var(--border-strong);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 0.05em 0.4em;
+        white-space: nowrap;
+      }
+
+      /* Bloque de comando ---------------------------------------------- */
+
+      .cmd {
+        position: relative;
+        background: var(--term-bg);
+        border: 1px solid var(--border-strong);
+        border-radius: 10px;
+        padding: 1rem 1rem 1rem 1.15rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+      }
+
+      .cmd pre {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        color: var(--term-text);
+        white-space: pre;
+      }
+
+      .cmd .prompt {
+        color: var(--term-primary);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .cmd.tall {
+        padding-right: 1rem;
+      }
+
+      .copy {
+        position: absolute;
+        top: 0.55rem;
+        right: 0.55rem;
+        font: inherit;
+        font-size: 0.8125rem;
+        color: var(--term-muted);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+      }
+
+      .copy:hover {
+        color: var(--term-text);
+        background: rgba(255, 255, 255, 0.11);
+      }
+
+      .copy[data-done="true"] {
+        color: var(--term-primary);
+        border-color: var(--term-primary);
+      }
+
+      /* Secciones del final -------------------------------------------- */
+
+      hr {
+        border: 0;
+        border-top: 1px solid var(--border);
+        margin: 3.5rem 0;
+      }
+
+      section {
+        margin-bottom: 2.5rem;
+      }
+
+      ul {
+        margin: 0 0 1rem;
+        padding-left: 1.15rem;
+      }
+
+      li {
+        margin-bottom: 0.35rem;
+      }
+
+      footer {
+        margin-top: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.9375rem;
+      }
+
+      footer a {
+        color: var(--muted);
+      }
+
+      footer a:hover {
+        color: var(--primary);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header>
+        <!-- La marca: dos anillos de seis puntos, el interior girado un sexto de vuelta.
+             Es la misma que pinta la TUI y el instalador al terminar. -->
+        <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+          <g class="outer">
+            <circle cx="50" cy="12" r="6.5" />
+            <circle cx="82.9" cy="31" r="6.5" />
+            <circle cx="82.9" cy="69" r="6.5" />
+            <circle cx="50" cy="88" r="6.5" />
+            <circle cx="17.1" cy="69" r="6.5" />
+            <circle cx="17.1" cy="31" r="6.5" />
+          </g>
+          <g class="inner">
+            <circle cx="59" cy="34.4" r="3.5" />
+            <circle cx="68" cy="50" r="3.5" />
+            <circle cx="59" cy="65.6" r="3.5" />
+            <circle cx="41" cy="65.6" r="3.5" />
+            <circle cx="32" cy="50" r="3.5" />
+            <circle cx="41" cy="34.4" r="3.5" />
+          </g>
+        </svg>
+        <div>
+          <div class="brand">Bioinformática.org</div>
+          <div class="tagline">bioinformatics co-scientist</div>
+        </div>
+      </header>
+
+      <h1>Instálalo con una línea en la terminal</h1>
+
+      <p class="lead">
+        Bioinformática.org es un agente de terminal: le describes tu pregunta biológica con tus
+        palabras y él busca el pipeline de <a href="https://nf-co.re">nf-core</a>, comprueba la
+        máquina, construye el comando de Nextflow, <em>te lo enseña</em> y pide tu aprobación antes
+        de ejecutar nada.
+      </p>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <h2>Abre la terminal</h2>
+          <div class="os">
+            <div>
+              <strong>macOS</strong>
+              Pulsa <kbd>⌘</kbd> + <kbd>Espacio</kbd>, escribe <em>Terminal</em> y pulsa
+              <kbd>Enter</kbd>.
+            </div>
+            <div>
+              <strong>Linux</strong>
+              Pulsa <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd>, o busca <em>Terminal</em> entre
+              tus aplicaciones.
+            </div>
+            <div>
+              <strong>Windows</strong>
+              Abre PowerShell como administrador, ejecuta <code>wsl --install</code> y luego abre
+              <em>Ubuntu</em>. Nextflow necesita Linux.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <h2>Copia esta línea, pégala y pulsa Enter</h2>
+          <div class="cmd" data-copy="curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash">
+            <pre><span class="prompt">$ </span>curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash</pre>
+          </div>
+          <p class="note">
+            Tarda menos de un minuto. Descarga el binario que corresponde a tu sistema desde las
+            <a href="https://github.com/webiwabou/bioinformatica.org/releases">releases de GitHub</a>,
+            lo deja en <code>~/.bioinformatica/bin</code> y añade esa carpeta a tu <code>PATH</code>.
+            No pide contraseña ni permisos de administrador, y no toca nada fuera de tu carpeta
+            personal.
+          </p>
+          <p class="note">
+            Pegar un comando que no has leído es un acto de confianza. Puedes
+            <a href="./install">leer el script antes de ejecutarlo</a>: es bash, hace exactamente lo
+            que dice el párrafo de arriba y nada más.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <h2>Cierra la terminal, ábrela de nuevo y arranca</h2>
+          <p class="note">
+            Hay que reabrirla para que tome el <code>PATH</code> nuevo. Después, conecta un proveedor
+            de modelos y entra en la carpeta de tu análisis:
+          </p>
+          <div class="cmd tall" data-copy="bioinformatica providers login">
+            <pre><span class="prompt">$ </span>bioinformatica providers login   <span style="color: var(--term-muted)"># conectar un proveedor de modelos</span>
+<span class="prompt">$ </span>cd ~/mi-analisis                 <span style="color: var(--term-muted)"># tu carpeta de trabajo</span>
+<span class="prompt">$ </span>bioinformatica                   <span style="color: var(--term-muted)"># abrir la interfaz</span></pre>
+          </div>
+          <p class="note">
+            No trae modelo propio: funciona con Anthropic, OpenAI, Gemini, DeepSeek, Qwen, OpenRouter
+            o un modelo que sirvas tú en local con Ollama o vLLM. Las recetas concretas están en
+            <a href="https://github.com/webiwabou/bioinformatica.org/blob/main/docs/modelos.md"
+              >docs/modelos.md</a
+            >.
+          </p>
+          <p class="note">Y ya puedes escribirle en tus propias palabras:</p>
+          <div class="cmd">
+            <pre><span style="color: var(--term-muted)">&gt;</span> Tengo 12 FASTQ pareados de RNA-seq de hígado de ratón en ./datos,
+<span style="color: var(--term-muted)">&gt;</span> seis controles y seis tratados. Quiero cuantificar expresión génica.</pre>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <section>
+        <h2>Qué más necesita la máquina</h2>
+        <p class="note">
+          El agente orquesta herramientas del ecosistema; no las sustituye. Para ejecutar pipelines
+          de verdad hacen falta:
+        </p>
+        <ul class="note">
+          <li><a href="https://www.nextflow.io">Nextflow</a> y un Java compatible</li>
+          <li>un backend de contenedores: Docker (preferido) o conda/mamba</li>
+          <li>opcionalmente nf-core tools, para lint y contribución</li>
+        </ul>
+        <p class="note">
+          No hace falta que los instales antes. Una vez instalado el agente, este comando inspecciona
+          la máquina y te dice, para cada pieza que falte, si se puede instalar sin root y el comando
+          exacto. Es de sólo lectura: recomienda, nunca instala.
+        </p>
+        <div class="cmd" data-copy="bioinformatica debug env">
+          <pre><span class="prompt">$ </span>bioinformatica debug env</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Comprobar lo que has descargado</h2>
+        <p class="note">
+          Cada release lleva un fichero <code>SHA256SUMS</code> junto a los binarios. Si te descargas
+          uno a mano desde
+          <a href="https://github.com/webiwabou/bioinformatica.org/releases">la página de releases</a>,
+          puedes comprobar que es exactamente el que se publicó:
+        </p>
+        <div class="cmd" data-copy="sha256sum --check SHA256SUMS">
+          <pre><span class="prompt">$ </span>sha256sum --check SHA256SUMS</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>Otras formas de instalarlo</h2>
+        <ul class="note">
+          <li>
+            Una versión concreta:
+            <code>curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash -s -- --version 0.1.0</code>
+          </li>
+          <li>
+            El binario suelto, sin script: descárgalo de
+            <a href="https://github.com/webiwabou/bioinformatica.org/releases">releases</a> y ponlo en
+            tu <code>PATH</code>.
+          </li>
+          <li>
+            Desde el código fuente, con <a href="https://bun.sh">Bun</a> 1.3.x: las instrucciones
+            están en el
+            <a href="https://github.com/webiwabou/bioinformatica.org#instalación">README</a>.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Por qué existe</h2>
+        <p class="note">
+          Un resultado producido por un agente tiene que poder defenderse ante alguien que no estuvo
+          en la sala: un director de tesis, un revisor, uno mismo dieciocho meses después. Y ahí el
+          relato del propio agente no vale nada. Por eso, sobre cada campaña, Bioinformática.org
+          emite cuatro artefactos diseñados para que <em>los verifique un tercero</em> sin ejecutar
+          el agente, sin modelo y sin red — y para que digan en voz alta lo que <em>no</em>
+          demuestran.
+        </p>
+        <p class="note">
+          <a href="https://github.com/webiwabou/bioinformatica.org#los-cuatro-artefactos"
+            >Los cuatro artefactos, explicados</a
+          >.
+        </p>
+      </section>
+
+      <footer>
+        <a href="https://github.com/webiwabou/bioinformatica.org">Código en GitHub</a> ·
+        <a href="https://github.com/webiwabou/bioinformatica.org/issues">Incidencias</a> ·
+        <a href="https://github.com/webiwabou/bioinformatica.org/blob/main/LICENSE">Licencia MIT</a>
+      </footer>
+    </div>
+
+    <script>
+      // El botón se crea desde JS: sin JS no aparece un botón que no haría nada,
+      // y el comando sigue estando ahí para seleccionarlo a mano.
+      for (const block of document.querySelectorAll(".cmd[data-copy]")) {
+        const button = document.createElement("button")
+        button.className = "copy"
+        button.type = "button"
+        button.textContent = "copiar"
+        button.addEventListener("click", async () => {
+          const text = block.dataset.copy
+          try {
+            await navigator.clipboard.writeText(text)
+          } catch {
+            const area = document.createElement("textarea")
+            area.value = text
+            area.style.position = "fixed"
+            area.style.opacity = "0"
+            document.body.appendChild(area)
+            area.select()
+            document.execCommand("copy")
+            area.remove()
+          }
+          button.textContent = "copiado"
+          button.dataset.done = "true"
+          setTimeout(() => {
+            button.textContent = "copiar"
+            delete button.dataset.done
+          }, 2000)
+        })
+        block.appendChild(button)
+      }
+    </script>
+  </body>
+</html>

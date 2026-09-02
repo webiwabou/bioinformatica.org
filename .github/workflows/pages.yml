@@ -1,0 +1,75 @@
+# La página de instalación.
+#
+# El instalador de la raíz (`install`) ya sabía descargar el binario correcto para
+# cada plataforma, pero no había ninguna URL desde la que servirlo: la única forma
+# de llegar a él era clonar el repositorio, que es justo lo que un `curl | bash`
+# evita. Este workflow publica `www/` en GitHub Pages y copia ese mismo `install`
+# junto al `index.html`, de modo que
+#
+#     curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash
+#
+# sirva el script del repositorio y no una copia que se pueda quedar atrás. Por eso
+# el workflow se dispara también cuando cambia `install`, y no sólo `www/`.
+#
+# Requiere que Pages esté activado en el repositorio con el origen «GitHub Actions»
+# (Settings → Pages → Build and deployment → Source: GitHub Actions). No se puede
+# activar desde aquí: `actions/configure-pages` sólo lo hace con un token distinto
+# del GITHUB_TOKEN.
+
+name: pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "www/**"
+      - "install"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una publicación a medias deja el sitio en un estado que nadie eligió, así que las
+# ejecuciones se encolan en vez de cancelarse entre ellas.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp -R www/. _site/
+          rm -f _site/README.md # nota para quien lee el repositorio, no parte del sitio
+          cp install _site/install
+
+      # El sitio es estático y no lleva build, así que lo único que puede fallar en
+      # silencio es que el instalador no llegue. Se comprueba aquí y no en el
+      # navegador de quien lo intente.
+      - name: Check the installer is being published
+        run: |
+          test -s _site/install
+          head -1 _site/install | grep -q '^#!/usr/bin/env bash'
+          grep -q 'webiwabou.github.io/bioinformatica.org/install' _site/index.html
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
