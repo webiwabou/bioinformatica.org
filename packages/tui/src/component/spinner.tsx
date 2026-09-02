@@ -48,6 +48,16 @@ export function ring(position: number): string {
 /** The ring stopped at its first position: nothing is moving, it is your turn. */
 export const RING_STILL = ring(0)
 
+/**
+ * The ring as a plain frame list, for renderers that cannot reach the pulse.
+ *
+ * The CLI's run footer draws its own opentui tree outside the TUI application,
+ * so it has no PulseProvider above it and cannot use `<Spinner>`. It gets the
+ * same six frames at a fixed second per step instead of the rhythm that slows
+ * with the age of the job.
+ */
+export const RING_FRAMES = Array.from({ length: RING_CELLS }, (_, cell) => ring(cell))
+
 export function Spinner(props: {
   children?: JSX.Element
   color?: RGBA

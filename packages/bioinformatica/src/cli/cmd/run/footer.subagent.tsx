@@ -3,7 +3,7 @@ import type { ScrollBoxRenderable } from "@opentui/core"
 import { useKeyboard } from "@opentui/solid"
 import { registerBioinformaticaSpinner } from "@bioinformatica/tui/component/register-spinner"
 import { Show, createMemo, indexArray } from "solid-js"
-import { SPINNER_FRAMES } from "@bioinformatica/tui/component/spinner"
+import { RING_FRAMES } from "@bioinformatica/tui/component/spinner"
 import { RunEntryContent, separatorRows } from "./scrollback.writer"
 import type { FooterSubagentDetail, FooterSubagentTab, RunDiffStyle } from "./types"
 import type { RunFooterTheme, RunTheme } from "./theme"
@@ -128,7 +128,7 @@ export function RunFooterSubagentBody(props: {
             <box width="100%" flexDirection="row" gap={1} paddingBottom={1} flexShrink={0}>
               {current().status === "running" ? (
                 <box flexShrink={0}>
-                  <spinner frames={SPINNER_FRAMES} interval={80} color={statusColor(footer(), current().status)} />
+                  <spinner frames={RING_FRAMES} interval={1000} color={statusColor(footer(), current().status)} />
                 </box>
               ) : (
                 <text fg={statusColor(footer(), current().status)} wrapMode="none" truncate flexShrink={0}>
