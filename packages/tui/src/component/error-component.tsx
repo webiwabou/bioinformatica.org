@@ -13,11 +13,12 @@ export function ErrorComponent(props: { error: Error; reset: () => void; mode?: 
   const clipboard = useClipboard()
   const [copied, setCopied] = createSignal(false)
 
-  // Paleta de respaldo, porque lo que se ha roto puede ser justo el contexto del
-  // tema. Copiada a mano de theme/assets/bioinformatica.json, que es lo que el
-  // comentario decia antes y no era cierto: llevaba la paleta del tema de
-  // escritorio, con su naranja #fab283 y su fondo #0a0a0a, asi que la unica
-  // pantalla que aparece cuando todo falla era la unica que no era del producto.
+  // Fallback palette, because the thing that broke may be the theme context
+  // itself. Copied by hand from theme/assets/bioinformatica.json, which is what
+  // the comment here used to claim and was not true: it carried the desktop
+  // theme's palette instead, with its orange #fab283 and its #0a0a0a ground, so
+  // the one screen that appears when everything fails was the one screen that
+  // did not belong to the product.
   const isLight = props.mode === "light"
   const colors = isLight
     ? {

@@ -1,42 +1,37 @@
 import { Show, createMemo } from "solid-js"
 import { useTheme } from "../context/theme"
 import { useKV } from "../context/kv"
-import { usePulso } from "../context/pulso"
+import { usePulse } from "../context/pulse"
 import { MARK_INNER, MARK_OUTER } from "../logo"
 import type { JSX } from "@opentui/solid"
 import type { RGBA } from "@opentui/core"
 
 /**
- * El anillo: la marca del producto, linealizada, esperando.
+ * The ring: the product's mark, linearised, waiting.
  *
- * Seis celdas, un punto lleno viajando entre cinco huecos, dando la vuelta. Un
- * anillo cicla; no rebota, porque un rebote se lee como un escaner y esto no
- * escanea nada. Sustituye a las diez tramas braille a 80 ms, que son el glifo
- * mas reconocible de cualquier CLI generica y eran ademas el unico movimiento
- * de la aplicacion.
+ * Six cells, one filled dot travelling among five hollow ones, wrapping around.
+ * A ring cycles; it does not bounce, because a bounce reads as a scanner and
+ * this scans nothing. It replaces the ten braille frames at 80ms, which are the
+ * single most recognisable glyph set in any generic CLI and were also the only
+ * motion in the application.
  *
- * El ritmo lleva informacion: un paso por segundo el primer minuto, cada dos a
- * partir del minuto, cada cuatro pasada la decena y cada doce pasada la hora.
- * A la hora tres el anillo da una vuelta cada setenta y dos segundos, y la
- * maquina, visiblemente, asienta la respiracion. Sin ese dato el estado de
- * ocupado era identico en el minuto uno y en la hora cuatro.
+ * The rhythm carries information: one step per second for the first minute,
+ * every two after that, every four past ten minutes and every twelve past the
+ * hour. At hour three the ring completes a turn every seventy-two seconds, and
+ * the machine visibly settles into its breathing. Without that, the busy state
+ * was identical at minute one and at hour four.
  *
- * No usa `<spinner>`: el ritmo se consigue contando pulsos del reloj unico de
- * la aplicacion, nunca cambiando un intervalo. `opentui-spinner@0.0.7` lanza
- * `RangeError` con cualquier intervalo fuera de [1000/60, 1000] en lugar de
- * recortarlo, asi que cualquier paso mas lento que un segundo reventaria el
- * componente.
+ * It does not use `<spinner>`: the rhythm comes from counting beats of the
+ * application's single clock, never from changing an interval. opentui-spinner
+ * 0.0.7 throws a RangeError for any interval outside [1000/60, 1000] rather than
+ * clamping it, so any step slower than a second would crash the component.
  *
- * Los glifos salen de `logo.ts` a proposito, para que el anillo sea la marca y
- * no una figura parecida. Nota de anchura: `●` es de anchura ambigua en Asia
- * oriental y `◦` es estrecho, asi que bajo una configuracion regional CJK el
- * anillo cambia de ancho al girar. Pasar `MARK_INNER` a `○` (tambien ambiguo)
- * lo elimina por construccion, y es una decision de marca pendiente de firma:
- * al tomarla, esto la hereda sin tocar nada.
+ * The glyphs come from `logo.ts` on purpose, so that the ring is the mark and
+ * not a shape that resembles it.
  */
 export const RING_CELLS = 6
 
-/** Cuantos pulsos consume cada paso, segun la edad del trabajo. */
+/** How many beats one step consumes, given the age of the work. */
 export function ringStep(ageMs: number): number {
   if (ageMs < 60_000) return 1
   if (ageMs < 600_000) return 2
@@ -50,21 +45,21 @@ export function ring(position: number): string {
   return out
 }
 
-/** El anillo detenido en su primera posicion: nada se mueve, te toca a ti. */
+/** The ring stopped at its first position: nothing is moving, it is your turn. */
 export const RING_STILL = ring(0)
 
 export function Spinner(props: {
   children?: JSX.Element
   color?: RGBA
-  /** Marca de tiempo en la que empezo el trabajo, si se conoce, para el ritmo. */
+  /** When the work started, if known, so the ring can slow down as it ages. */
   since?: number
 }) {
   const { theme } = useTheme()
   const kv = useKV()
-  const pulso = usePulso()
+  const pulse = usePulse()
   const color = () => props.color ?? theme.textMuted
 
-  const tick = pulso.seguir()
+  const tick = pulse.follow()
   const frame = createMemo(() => {
     const age = props.since ? Date.now() - props.since : 0
     return ring(Math.floor(tick() / ringStep(age)) % RING_CELLS)

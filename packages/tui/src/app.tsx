@@ -1,6 +1,6 @@
 import { render, TimeToFirstDraw, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { registerBioinformaticaSpinner } from "./component/register-spinner"
-import { PulsoProvider } from "./context/pulso"
+import { PulseProvider } from "./context/pulse"
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import { Deferred, Effect } from "effect"
 import { Global } from "@bioinformatica/core/global"
@@ -285,7 +285,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                           <BioinformaticaKeymapProvider keymap={keymap}>
                             <ArgsProvider {...input.args}>
                               <KVProvider>
-                                <PulsoProvider>
+                                <PulseProvider>
                                   <ToastProvider>
                                     <RouteProvider
                                       initialRoute={
@@ -341,7 +341,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                       </TuiConfigProvider>
                                     </RouteProvider>
                                   </ToastProvider>
-                                </PulsoProvider>
+                                </PulseProvider>
                               </KVProvider>
                             </ArgsProvider>
                           </BioinformaticaKeymapProvider>
