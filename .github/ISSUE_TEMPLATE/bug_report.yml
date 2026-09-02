@@ -9,7 +9,7 @@ body:
         volcados largos generados por IA se ignoran o se cierran sin revisar.
 
         Si crees que has encontrado un problema de seguridad, **no abras una issue**:
-        sigue [SECURITY.md](https://github.com/bioinformatica-org/bioinformatica/blob/main/SECURITY.md).
+        sigue [SECURITY.md](https://github.com/webiwabou/bioinformatica.org/blob/main/SECURITY.md).
 
   - type: textarea
     id: description

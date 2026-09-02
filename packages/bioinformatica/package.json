@@ -158,10 +158,10 @@
   "homepage": "https://bioinformatica.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bioinformatica-org/bioinformatica.git"
+    "url": "git+https://github.com/webiwabou/bioinformatica.org.git"
   },
   "bugs": {
-    "url": "https://github.com/bioinformatica-org/bioinformatica/issues"
+    "url": "https://github.com/webiwabou/bioinformatica.org/issues"
   },
   "keywords": [
     "bioinformatics",

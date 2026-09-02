@@ -50,7 +50,7 @@ Para compilar desde el código fuente hace falta además **[Bun](https://bun.sh)
 Todavía no hay releases publicadas, así que la vía real hoy es compilar desde el código:
 
 ```bash
-git clone https://github.com/bioinformatica-org/bioinformatica.git
+git clone https://github.com/webiwabou/bioinformatica.org.git
 cd bioinformatica
 bun install
 

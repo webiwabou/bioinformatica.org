@@ -22,7 +22,7 @@ abstract: >-
 authors:
   - name: "Bioinformática.org"
 
-repository-code: "https://github.com/bioinformatica-org/bioinformatica"
+repository-code: "https://github.com/webiwabou/bioinformatica.org"
 url: "https://bioinformatica.org"
 license: MIT
 

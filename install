@@ -5,7 +5,7 @@ APP=bioinformatica
 # Where releases come from. Kept as one variable rather than repeated in every
 # download URL below, so the release origin is a single edit here and one in
 # packages/script/src/identity.ts. Override only for development.
-REPO="${BIOINFORMATICA_INSTALL_REPO:-bioinformatica-org/bioinformatica}"
+REPO="${BIOINFORMATICA_INSTALL_REPO:-webiwabou/bioinformatica.org}"
 
 MUTED='\033[0;2m'
 TEAL='\033[0;36m'

@@ -7,11 +7,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bioinformatica-org/bioinformatica.git",
+    "url": "git+https://github.com/webiwabou/bioinformatica.org.git",
     "directory": "packages/http-recorder"
   },
-  "homepage": "https://github.com/bioinformatica-org/bioinformatica/tree/dev/packages/http-recorder",
-  "bugs": "https://github.com/bioinformatica-org/bioinformatica/issues",
+  "homepage": "https://github.com/webiwabou/bioinformatica.org/tree/dev/packages/http-recorder",
+  "bugs": "https://github.com/webiwabou/bioinformatica.org/issues",
   "keywords": [
     "effect",
     "http",

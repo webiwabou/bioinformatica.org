@@ -61,7 +61,7 @@ Las instancias de comportamiento abusivo, acosador o inaceptable de otro modo po
 las personas que mantienen el proyecto a través del formulario privado de avisos de seguridad de
 GitHub, **no** mediante un _issue_ público:
 
-<https://github.com/bioinformatica-org/bioinformatica/security/advisories/new>
+<https://github.com/webiwabou/bioinformatica.org/security/advisories/new>
 
 Es el mismo canal privado que usamos para las vulnerabilidades, y por el mismo motivo: solo lo leen
 quienes mantienen el repositorio, y el contenido no queda visible para el resto de la comunidad

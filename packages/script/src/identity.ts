@@ -11,7 +11,7 @@
 // practice.
 
 /** The GitHub repository, as `owner/name`. CI supplies its own. */
-const REPOSITORY = process.env["GITHUB_REPOSITORY"] ?? "bioinformatica-org/bioinformatica"
+const REPOSITORY = process.env["GITHUB_REPOSITORY"] ?? "webiwabou/bioinformatica.org"
 
 /**
  * The distribution name: the binary, the npm package, the container image, the

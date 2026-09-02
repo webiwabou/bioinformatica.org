@@ -38,13 +38,13 @@ import { McpBrowser } from "./browser"
 const DEFAULT_TIMEOUT = 30_000
 const CLIENT_OPTIONS = {
   capabilities: {
-    // https://github.com/bioinformatica-org/bioinformatica/issues/11948
+    // https://github.com/webiwabou/bioinformatica.org/issues/11948
     // sampling: {},
-    // https://github.com/bioinformatica-org/bioinformatica/issues/23066
+    // https://github.com/webiwabou/bioinformatica.org/issues/23066
     // elicitation: {},
-    // https://github.com/bioinformatica-org/bioinformatica/issues/2308
+    // https://github.com/webiwabou/bioinformatica.org/issues/2308
     roots: {},
-    // https://github.com/bioinformatica-org/bioinformatica/issues/28567
+    // https://github.com/webiwabou/bioinformatica.org/issues/28567
     // tasks: {},
   },
 } satisfies ClientOptions

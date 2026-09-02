@@ -4,7 +4,7 @@
 
 Usa el formulario privado de GitHub, **no** un issue público:
 
-<https://github.com/bioinformatica-org/bioinformatica/security/advisories/new>
+<https://github.com/webiwabou/bioinformatica.org/security/advisories/new>
 
 Incluye, si puedes: la versión que usabas, el sistema operativo, los pasos para reproducirlo y qué
 consigue quien lo explote. Un ejemplo mínimo vale más que una descripción larga.
