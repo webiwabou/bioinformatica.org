@@ -5,10 +5,13 @@ exports[`TUI inline tool wrapping snapshots consecutive grep, glob, and read row
      *dir|xdg|APPDATA" in packages/bioinformatica/src (151 matches)
 
    ✱ Glob "**/*db*" in packages/bioinformatica (6 matches)
-   → Read packages/bioinformatica/src/storage/db.ts [offset=1, limit=130]
+   → Read packages/bioinformatica/src/storage/db.ts [offset=1,
+     limit=130]
+
    → Read packages/bioinformatica/src/index.ts [offset=1, limit=100]
-   ✱ Grep "export const BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\.Path\\.
-     data|data =" in packages/bioinformatica/src (115 matches)"
+   ✱ Grep "export const
+     BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\.
+     Path\\.data|data =" in packages/bioinformatica/src (115 matches)"
 `;
 
 exports[`TUI inline tool wrapping snapshots expanded tool errors under the tool text 1`] = `
@@ -16,12 +19,14 @@ exports[`TUI inline tool wrapping snapshots expanded tool errors under the tool 
      *dir|xdg|APPDATA" in packages/bioinformatica/src (151 matches)
 
    ✱ Glob "**/*db*" in packages/bioinformatica (6 matches)
-   → Read packages/bioinformatica/src/storage/db.ts [offset=1, limit=130]
+   → Read packages/bioinformatica/src/storage/db.ts [offset=1,
+     limit=130]
+
    → Read packages/bioinformatica/src/index.ts [offset=1, limit=100]
      No LSP server available for this file type.
 
-   ✱ Grep "export const BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\.Path\\.
-     data|data =" in packages/bioinformatica/src (115 matches)"
+   ✱ Grep "export const
+     BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\."
 `;
 
 exports[`TUI inline tool wrapping keeps separation after a shell output block 1`] = `
@@ -35,10 +40,12 @@ exports[`TUI inline tool wrapping keeps separation after a shell output block 1`
      *dir|xdg|APPDATA" in packages/bioinformatica/src (151 matches)
 
    ✱ Glob "**/*db*" in packages/bioinformatica (6 matches)
-   → Read packages/bioinformatica/src/storage/db.ts [offset=1, limit=130]
+   → Read packages/bioinformatica/src/storage/db.ts [offset=1,
+     limit=130]
+
    → Read packages/bioinformatica/src/index.ts [offset=1, limit=100]
-   ✱ Grep "export const BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\.Path\\.
-     data|data =" in packages/bioinformatica/src (115 matches)"
+   ✱ Grep "export const
+     BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\."
 `;
 
 exports[`TUI inline tool wrapping keeps separation after a padded user message 1`] = `
@@ -50,10 +57,12 @@ exports[`TUI inline tool wrapping keeps separation after a padded user message 1
      *dir|xdg|APPDATA" in packages/bioinformatica/src (151 matches)
 
    ✱ Glob "**/*db*" in packages/bioinformatica (6 matches)
-   → Read packages/bioinformatica/src/storage/db.ts [offset=1, limit=130]
+   → Read packages/bioinformatica/src/storage/db.ts [offset=1,
+     limit=130]
+
    → Read packages/bioinformatica/src/index.ts [offset=1, limit=100]
-   ✱ Grep "export const BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\.Path\\.
-     data|data =" in packages/bioinformatica/src (115 matches)"
+   ✱ Grep "export const
+     BIOINFORMATICA_DB|BIOINFORMATICA_DB|BIOINFORMATICA_DEV|Global\\."
 `;
 
 exports[`TUI inline tool wrapping separates after a multi-line task row 1`] = `

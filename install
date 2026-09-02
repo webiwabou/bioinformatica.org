@@ -8,6 +8,7 @@ APP=bioinformatica
 REPO="${BIOINFORMATICA_INSTALL_REPO:-bioinformatica-org/bioinformatica}"
 
 MUTED='\033[0;2m'
+TEAL='\033[0;36m'
 RED='\033[0;31m'
 ORANGE='\033[38;5;214m'
 NC='\033[0m' # No Color
@@ -449,10 +450,11 @@ if [ -n "${GITHUB_ACTIONS-}" ] && [ "${GITHUB_ACTIONS}" == "true" ]; then
 fi
 
 echo -e ""
-echo -e "${MUTED}╲    ╱${NC}"
-echo -e "${MUTED} ╲╱╲╱ ${NC}"
-echo -e "${MUTED} ╱╲╱╲ ${NC}  Bioinformática.org"
-echo -e "${MUTED}╱    ╲${NC}  ${MUTED}co-científico de bioinformática${NC}"
+echo -e "${TEAL}      \u25cf      ${NC}"
+echo -e "${TEAL}\u25cf${NC}    ${MUTED}\u25e6 \u25e6${NC}    ${TEAL}\u25cf${NC}   Bioinformática.org"
+echo -e "${MUTED}    \u25e6   \u25e6    ${NC}"
+echo -e "${TEAL}\u25cf${NC}    ${MUTED}\u25e6 \u25e6${NC}    ${TEAL}\u25cf${NC}   ${MUTED}bioinformatics co-scientist${NC}"
+echo -e "${TEAL}      \u25cf      ${NC}"
 echo -e ""
 echo -e "${MUTED}Configura un proveedor de modelos y abre un proyecto:${NC}"
 echo -e ""

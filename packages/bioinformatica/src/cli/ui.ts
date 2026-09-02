@@ -3,13 +3,14 @@ import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
 
 // The plain-text fallback used when neither stream is a TTY. Same content as the
-// coloured two-column banner above it, so a piped `--help` and an interactive one
+// coloured two-column banner below, so a piped `--help` and an interactive one
 // name the same product.
 const wordmark = [
-  `╲    ╱`,
-  ` ╲╱╲╱ `,
-  ` ╱╲╱╲   Bioinformática.org`,
-  `╱    ╲  co-científico de bioinformática`,
+  `      ●      `,
+  `●    ◦ ◦    ●   Bioinformática.org`,
+  `    ◦   ◦    `,
+  `●    ◦ ◦    ●   bioinformatics co-scientist`,
+  `      ●      `,
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
@@ -72,9 +73,22 @@ export function logo(pad?: string) {
     bg: "\x1b[48;5;238m",
   }
   const gap = " "
+  // The mark's two rings are coloured apart wherever colour is available: the
+  // outer ring in the accent, the inner one muted. The glyphs differ too, so a
+  // terminal that drops colour still shows two rings rather than one blur.
+  const outer = "\x1b[36m"
+  const inner = "\x1b[90m"
   const draw = (line: string, fg: string, shadow: string, bg: string) => {
     const parts: string[] = []
     for (const char of line) {
+      if (char === "●") {
+        parts.push(outer, char, reset)
+        continue
+      }
+      if (char === "◦") {
+        parts.push(inner, char, reset)
+        continue
+      }
       if (char === "_") {
         parts.push(bg, " ", reset)
         continue
