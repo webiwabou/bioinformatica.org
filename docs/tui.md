@@ -14,6 +14,22 @@ cada uno lleva su propio commit. -->
 
 # El Registro
 
+> **Decisiones tomadas sobre esta propuesta (1 sep 2026).**
+>
+> **La interfaz se queda en inglés.** El vocabulario en pantalla de este documento
+> está escrito en español; léase como la lista de conceptos, no como las cadenas.
+> En pantalla son: *entry*, *record*, *draft*, *proves / does not prove / check it*,
+> *counted from*, *sign*, *dossier*, *plate*. Los identificadores y comentarios del
+> código nuevo van en inglés, como el resto de `packages/tui`. Con eso decae la
+> tabla bilingüe del hito 1 y su test de paridad, y decae también el primer punto
+> de la sección 7. La página, los instaladores y el README siguen en español.
+>
+> **La marca no se toca.** `MARK_INNER` se queda en `◦`. El cambio a `○` que pedía
+> la sección 7 era por anchura, no por estética, y hay una forma mejor de resolverlo
+> que no toca la marca: dibujarla sobre celdas de ancho fijo, de modo que la
+> anchura del glifo deje de importar. Eso entra en el hito 2 con el resto de la
+> rejilla.
+
 Propuesta de diseño para la TUI de Bioinformática.org. Base: la dirección *Asiento*, con injertos de *Bancada*, *Escalera* y *El Anillo* donde los jueces los señalaron, y con las fallas fatales de las cuatro respondidas explícitamente.
 
 ---
