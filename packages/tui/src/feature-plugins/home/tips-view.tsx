@@ -68,7 +68,7 @@ function parse(tip: string): TipPart[] {
   return parts
 }
 
-const NO_MODELS_TIP = "Run {highlight}/connect{/highlight} to add an AI provider and start coding"
+const NO_MODELS_TIP = "Run {highlight}/connect{/highlight} to add a model provider and get started"
 const NO_MODELS_PARTS = parse(NO_MODELS_TIP)
 
 function shortcutText(value: string) {
@@ -167,11 +167,11 @@ const TIPS: Tip[] = [
   (shortcuts) => press(shortcuts.agentCycle(), "to cycle between Build and Plan agents"),
   "Use {highlight}/undo{/highlight} to revert the last message and file changes",
   "Use {highlight}/redo{/highlight} to restore previously undone messages and file changes",
-  "Run {highlight}/share{/highlight} to create a public bioinformatica.org link",
+  "Run {highlight}/share{/highlight} to create a public link to this session",
   "Drag and drop images or PDFs into the terminal as context",
   (shortcuts) => press(shortcuts.inputPaste(), "to paste images from your clipboard into the prompt"),
   (shortcuts) => `Use ${commandText("/editor", shortcuts.editorOpen())} to compose messages in your external editor`,
-  "Run {highlight}/init{/highlight} to auto-generate project rules based on your codebase",
+  "Run {highlight}/init{/highlight} to write down the rules of this project so the agent follows them",
   (shortcuts) => `Use ${commandText("/models", shortcuts.modelList())} to switch between available AI models`,
   (shortcuts) => `Use ${commandText("/themes", shortcuts.themeList())} to switch between ${themeCount} built-in themes`,
   (shortcuts) => `Use ${commandText("/new", shortcuts.sessionNew())} to start a fresh conversation session`,
