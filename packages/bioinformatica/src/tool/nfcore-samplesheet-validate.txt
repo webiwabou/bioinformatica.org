@@ -1,0 +1,5 @@
+Check a proposed samplesheet against an nf-core pipeline's own schema before writing or running it.
+
+Pass the pipeline name and the samplesheet rows (an array of objects keyed by column name). The release defaults to the latest stable one. It reports, per row, any unknown columns, missing required columns, values outside an allowed enum, and file names that do not match the pipeline's required pattern.
+
+Use this as a pre-flight right before you write the samplesheet.csv: it catches the common mistakes that would otherwise silently corrupt a run. It is not a substitute for the pipeline's own validation at run time — passing here means "no obvious errors", not "guaranteed correct". Read-only; it validates but does not write the file.

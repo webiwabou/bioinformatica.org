@@ -1,0 +1,12 @@
+research
+dist
+dist-*
+gen
+app.log
+temporary-*.md
+.artifacts
+
+# Libro de enmiendas al protocolo: lo escribe el agente en tiempo de ejecución
+# (normalmente en `.bioinformatica/protocol/`), y una sesión lanzada desde este
+# directorio lo deja aquí. Es salida, no fuente.
+amendments.jsonl

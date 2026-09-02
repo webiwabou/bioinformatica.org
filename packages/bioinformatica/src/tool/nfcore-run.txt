@@ -1,0 +1,9 @@
+Build the exact `nextflow run` command for an nf-core pipeline. This tool constructs the command and shows it — it never runs anything.
+
+Pass the pipeline name and the mode:
+- mode "test": builds a test-profile command (`-profile test,<backend>`) that runs the pipeline on tiny bundled data. Always run this first to prove the environment works.
+- mode "run": builds a real-data command; provide the samplesheet path as `input`.
+
+The release defaults to the latest stable, and the container backend defaults to what the environment has (Docker if its daemon is running, otherwise conda). Set `outdir` for results (defaults to "results"). Extra pipeline parameters go in `params`; set `resume: true` to continue a previous run.
+
+After you get the command back, run it through the shell/bash tool — that is what shows the exact command and asks the scientist for approval before executing (a test-profile run is compute and is the session's first approval gate). Never run a pipeline without that approval, and always run the test profile before the real data.

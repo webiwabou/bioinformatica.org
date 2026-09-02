@@ -1,0 +1,40 @@
+# Cómo citar este software.
+#
+# Rellena `authors` y, cuando exista un release archivado en Zenodo, `doi` y
+# `date-released`. Valida con:  cffconvert --validate
+
+cff-version: 1.2.0
+message: "Si usas este software, cítalo como se indica abajo."
+type: software
+
+title: "Bioinformática.org"
+abstract: >-
+  Agente de terminal para bioinformática: ejecuta pipelines nf-core/Nextflow a
+  partir de una pregunta formulada en lenguaje natural, y emite sobre cada
+  ejecución los artefactos que el propio agente no puede escribir acerca de sí
+  mismo — un manifiesto verificable en frío (sin modelo y sin red), un registro
+  de decisiones y rechazos frente a un protocolo comprometido de antemano, un
+  conteo de intervenciones humanas, y documentación de métodos con versiones
+  fijadas.
+
+# TODO: sustituir por el nombre real y el ORCID antes del primer release.
+# Un valor de relleno en un fichero de citación es peor que un fichero ausente.
+authors:
+  - name: "Bioinformática.org"
+
+repository-code: "https://github.com/bioinformatica-org/bioinformatica"
+url: "https://bioinformatica.org"
+license: MIT
+
+keywords:
+  - bioinformática
+  - nf-core
+  - nextflow
+  - reproducibilidad
+  - proveniencia
+  - agentes de lenguaje
+
+# Añadir cuando exista el depósito en Zenodo:
+# doi: 10.5281/zenodo.XXXXXXX
+# version: 0.1.0
+# date-released: YYYY-MM-DD

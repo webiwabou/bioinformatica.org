@@ -1,0 +1,17 @@
+Inspect the local environment for running nf-core pipelines and report what is present.
+
+This tool is read-only: it runs version/inspection commands (nextflow, java, nf-core, docker, conda/mamba, nvidia-smi) and reads CPU/memory facts. It never installs, changes, or writes anything.
+
+Use it before proposing or running a pipeline, or when diagnosing an environment/version/resource problem, so you reason from the actual machine state rather than assumptions. It returns:
+- Nextflow, Java, and nf-core tools presence and versions
+- Docker (installed + whether the daemon is running) and conda/mamba availability
+- the container backend Bioinformática.org would use (Docker preferred, conda fallback)
+- CPU cores and total/available memory
+- GPU presence, VRAM, and driver
+
+Alongside the report it returns a remediation plan: for each missing dependency, whether it can be installed without root and the exact command. It only recommends — it never runs anything.
+
+Acting on the plan is a separate, approval-gated step you drive with other tools:
+- For a step marked "install" (no root needed, e.g. Nextflow or nf-core tools): run its command through the shell/bash tool, which shows the command and asks for approval before running it. Never install silently.
+- For a step marked "manual" (needs root, e.g. installing Docker or starting its daemon): show the command to the scientist and let them run it. Do not run privileged commands yourself.
+After applying fixes, call this tool again to confirm the environment is now ready.

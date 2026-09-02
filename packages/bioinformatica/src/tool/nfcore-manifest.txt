@@ -1,0 +1,7 @@
+Generate a reproducibility manifest for a completed nf-core run.
+
+Call this after a real run finishes. Pass the run's `outdir`. Optionally pass a short `sessionSummary` of what the scientist set out to do and what was decided, so the manifest captures the session context.
+
+The manifest references the ecosystem's own provenance — nf-core's pipeline_info/ (software versions, resolved params, execution report/timeline/trace) and, if the run used the nf-prov plugin, its BCO and RO-Crate files — without duplicating those formats. On top of that it records the Bioinformática.org-native layer that those artifacts don't capture: the human approvals granted during the session and the session summary. It writes the manifest to .bioinformatica/manifests/.
+
+Read-only with respect to the run's outputs; it only reads provenance and writes Bioinformática.org's own manifest file.

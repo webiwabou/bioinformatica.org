@@ -1,0 +1,11 @@
+Count samples through an nf-core run: how many were declared, how many reached each process, and — for every sample that did not finish — the last process that saw it.
+
+Give it the samplesheet the run was launched with, plus either the run's `outdir` (the newest `pipeline_info/execution_trace_*.txt` under it is used) or a `trace` path directly.
+
+Run this after every pipeline run, before reading any results. Nextflow's `join` operator drops unmatched keys silently: a sample whose key does not match on one side stops existing in that channel, the run still exits 0, and MultiQC renders a clean report of a smaller cohort. Nothing else in the run will tell you a sample went missing.
+
+The report names each missing sample and classifies it: `never_entered` (no task ever carried its id — usually a samplesheet id that does not match its files, or a missing file), `failed` (its task ended FAILED or ABORTED at a named process), `dropped_after` (it succeeded at a named process and then stopped appearing — the join signature), or `in_flight` (the run is not finished yet).
+
+Aggregation steps such as MULTIQC carry no per-sample tag, so they are listed separately and are never blamed for a drop; a sample is only ever attributed to a process that names its tasks per sample.
+
+If the census reports attrition, tell the scientist which samples and where, before discussing any result — a figure computed over a silently reduced cohort is a different study from the one they asked for. Read-only: it parses two text files and changes nothing.

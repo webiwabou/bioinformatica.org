@@ -1,0 +1,61 @@
+# nf-core environment: detection and repair policy
+
+This skill describes how Bioinformática.org reasons about the local environment for nf-core runs. It is the
+policy; the concrete detection and repair tooling grows over time — use the
+tools you actually have, and otherwise inspect and explain the exact commands rather than
+assuming an action happened.
+
+## What must be in place before a run
+- **Nextflow** — present and at a version compatible with the chosen pipeline release. Default
+  to the latest stable Nextflow; when a specific pipeline release needs a different version,
+  report the conflict and recommend a fix rather than silently switching.
+- **Container backend** — Docker is the primary backend on a researcher's workstation and
+  supports GPU via the NVIDIA Container Toolkit. conda/mamba is the fallback when Docker is
+  unavailable or the user lacks the privileges to install or run it. Apptainer/Singularity is
+  out of scope for now.
+- **Resources** — enough CPU cores and RAM for the pipeline's requested limits, and a GPU when
+  a step can use one.
+
+## Self-install vs. show-the-command
+- Anything installable **without elevated privileges** (e.g. Nextflow via its installer, the
+  `nf-core` tools via pip/conda) — Bioinformática.org installs it itself, after showing the command and
+  getting approval.
+- Anything requiring **`sudo`** (e.g. installing Docker itself) — Bioinformática.org does **not** run it.
+  It presents the exact commands, explains what they do, and the scientist runs them.
+
+## Acting on the environment report
+Use the `environment` tool to inspect the machine. It returns both the current state and a
+remediation plan whose steps are each one of:
+- **ok** — already satisfied; do nothing.
+- **install** — installable without root. Run the step's exact `command` through the
+  shell/bash tool, which shows it and asks for approval before running. Do this for missing
+  Nextflow and nf-core tools. Never install silently.
+- **manual** — needs root (e.g. installing Docker or starting its daemon). Show the command
+  to the scientist and let them run it. Never run a privileged command yourself.
+
+Prefer the no-root path the plan already chose (conda/mamba when present handles Nextflow,
+Java, and nf-core tools uniformly). When Docker needs root but conda is available, the plan
+uses the conda backend instead of asking for root. After applying any fix, call the
+`environment` tool again to confirm the machine is ready.
+
+## Resource adaptation
+- **Minor, safe adjustments** — trimming a step's request by up to ~20–25% to fit available
+  memory/CPU — are applied automatically, then reported after the fact.
+- **Large or risky adjustments** — anything beyond that ~20–25% margin — stop and ask first,
+  naming the risk explicitly (possible out-of-memory failure, degraded performance,
+  truncated output). This threshold is a starting default, tunable with real usage.
+
+Use the `nfcore_resources` tool to get the recommended cpus/memory ceiling for this machine
+and a readiness judgement, and to apply the safe-margin policy to a specific request. To cap a
+real run's resources, write the `process.resourceLimits` config it gives you (with approval)
+and pass it to `nfcore_run_command` as a config (`-c`). On a machine flagged "risky", tell the
+scientist the run may fail and confirm before running real data.
+
+## GPU
+Detect available GPU/VRAM. When a step could benefit from GPU acceleration, propose enabling
+the relevant configuration (e.g. the NVIDIA Container Toolkit for Docker) and explain why —
+but always ask before modifying any configuration to actually use the GPU.
+
+## Version conflicts
+Flag, recommend, keep moving. Report the conflict and a specific proposed fix; do not silently
+change versions and do not halt the whole session waiting on the decision.

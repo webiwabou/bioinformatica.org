@@ -1,0 +1,5 @@
+Explain an nf-core pipeline's parameters in plain language, read from its own nextflow_schema.json.
+
+Use this when the scientist asks what a parameter does, which options exist, or how to configure the pipeline — it is on-request, not something to narrate proactively. Pass the pipeline name and, optionally, a `query` (a parameter name or keywords like "aligner", "trimming", "genome"). Without a query it returns the pipeline's required parameters.
+
+For each parameter it returns the name, whether it's required, type, allowed values, default, group, and description/help text. The release defaults to the latest stable. Read-only.

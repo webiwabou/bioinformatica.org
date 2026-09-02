@@ -1,0 +1,27 @@
+# When an nf-core run fails
+
+Never jump straight to "just retry". Follow this fixed sequence:
+
+1. **Diagnose.** Use `nfcore_diagnose` with the run directory (where `.nextflow.log` is) and/or
+   the error text you captured. It reads the log and the failed task's own `.command.err` and
+   identifies the real cause — not just the surface error.
+
+2. **Explain.** Tell the scientist, in plain language, what actually went wrong and what the fix
+   is. Don't dump the raw stack trace.
+
+3. **Offer to apply the fix — if it's reparable.** Depending on the category:
+   - resources / out-of-memory → cap with `nfcore_resources` (resourceLimits config).
+   - container → start Docker (needs root, so the scientist runs it) or switch to conda.
+   - Nextflow version → update Nextflow or pin a matching pipeline release.
+   - input / samplesheet → fix with `nfcore_samplesheet_schema` / `nfcore_samplesheet_validate`.
+   - parameter → correct it using `nfcore_params`.
+   Propose the specific change and get approval before applying it.
+
+4. **Suggest `-resume`.** Once the cause is addressed, re-run with `nfcore_run_command` and
+   `resume: true` so Nextflow continues from cached tasks instead of starting over. (Exception:
+   a pipeline/revision error means nothing ran, so resume won't help — rebuild the command.)
+
+5. **Know the limits.** If the diagnosis says the cause is beyond Bioinformática.org — an external network or
+   service outage, something needing permissions you can't grant, a hardware limit, or a
+   data-specific tool error — say so plainly, explain why, and stop. Do not keep guessing or
+   retrying blindly.

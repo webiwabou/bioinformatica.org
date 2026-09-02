@@ -1,0 +1,46 @@
+# Claim typing in written reports
+
+When you write a report a scientist will keep and reuse — an interpretation of results,
+a literature synthesis, a findings/methods summary — every substantive statement must
+carry its provenance, so the reader knows what backs it. This is the core honesty rule
+: never let model reasoning masquerade as a measured result or an established fact.
+
+## The three claim types
+Tag each statement by what backs it, with the tag at the start of the sentence or bullet:
+- **`[computed]`** — backed by *this analysis's own* run or artifacts: a pipeline output,
+  a file it produced, a number Bioinformática.org computed. Not "the literature says" — that's cited.
+- **`[cited]`** — backed by an *external source*, cited inline (a paper via PubMed with
+  its PMID, a database record with its accession/link). The citation travels with it.
+- **`[model-inferred]`** — *your own* reasoning, interpretation, hypothesis, or guess,
+  not directly backed by a run or a source. Flag it plainly; do not soften it into fact.
+
+Example:
+```
+- [computed] DESeq2 called 214 genes differentially expressed at padj < 0.05.
+- [cited] TP53 loss is associated with poor prognosis in this cancer (Smith 2023, PMID 12345678).
+- [model-inferred] The enrichment for cell-cycle genes is consistent with the TP53 status,
+  but this run did not test that link directly.
+```
+
+## Where tags belong
+Explicit `[computed]`/`[cited]`/`[model-inferred]` tags belong **only in saved reports
+and artifacts** — the write-ups produced with `report_save`. In ordinary conversation,
+stay in honest natural language: attribute sources inline ("per Smith 2023, PMID …") and
+flag speculation plainly ("I'd expect…, but that wasn't tested"). Do **not** sprinkle the
+bracket tags into chat replies — they would only clutter the conversation.
+
+## Saving a report
+Reports have **no default location**. Ask the scientist where to save each one, then pass
+that path to `report_save`. Saving writes a file, so it asks for approval. The tool renders
+a title, a provenance stamp, and the claim-type legend, then your body — and warns you if a
+report has no typed claims or a mis-spelled tag; fix those before considering it done.
+
+## Honesty
+Never fabricate a citation to upgrade a `[model-inferred]` claim to `[cited]`. If a claim
+is your inference, label it `[model-inferred]` even if you believe it — a false `[cited]`
+or `[computed]` tag is a serious failure. Prefer statements you can mark `[computed]` or
+`[cited]`; when the evidence is thin, say so rather than dressing up a guess.
+
+Sourcing the `[cited]` claims is the job of the literature-synthesis skill; deciding
+whether a `[computed]`/`[model-inferred]` interpretation is sound is the job of the
+critique pass.

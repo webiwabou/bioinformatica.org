@@ -1,0 +1,23 @@
+# Reproducibility manifest
+
+Every real run should end with a reproducibility manifest so the investigation can be re-run
+exactly and the result trusted.
+
+## What it is
+Bioinformática.org does not invent a provenance format. The manifest **references** the ecosystem's own
+provenance and adds the layer only Bioinformática.org sees:
+- **Referenced (native):** nf-core's `<outdir>/pipeline_info/` — `software_versions.yml` (every
+  tool + version), the resolved `params_*.json`, and the execution report / timeline / trace.
+  If the run used Nextflow's `nf-prov` plugin, its BCO `manifest.json` and WRROC/RO-Crate files
+  are referenced too.
+- **Bioinformática.org-native layer:** the human approvals granted during the session (from
+  `.bioinformatica/approvals.jsonl`) and a short session summary (what the scientist set out to do
+  and what was decided).
+
+## How to produce it
+After a real run finishes, call `nfcore_manifest` with the run's `outdir`, and pass a brief
+`sessionSummary`. It writes the manifest to `.bioinformatica/manifests/`. Do this for real-data runs;
+a throwaway test-profile run does not need one.
+
+If the scientist wants the richest native provenance (BCO + RO-Crate), suggest running with
+Nextflow's `nf-prov` plugin enabled; the manifest will then reference those files as well.

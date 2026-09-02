@@ -1,0 +1,60 @@
+name: Propuesta de mejora
+description: Sugerir una funcionalidad o un cambio de comportamiento
+title: "[MEJORA]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Una funcionalidad nueva empieza con una conversación de diseño, no con un pull
+        request. Describe el problema aquí y espera respuesta de un mantenedor antes de
+        ponerte a implementarlo.
+
+  - type: checkboxes
+    id: verified
+    attributes:
+      label: Comprobaciones previas
+      options:
+        - label: He buscado en las issues abiertas y cerradas y esto no se ha propuesto antes.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qué problema resuelve
+      description: |
+        Qué estabas intentando hacer y por qué el comportamiento actual no te sirve.
+        El problema concreto convence mucho más que la solución propuesta.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Qué propones
+      description: Cómo debería comportarse. Si tienes una idea de la interfaz, descríbela.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: A qué parte afecta
+      description: Si no lo tienes claro, elige "No lo sé".
+      options:
+        - "Capa bioinformática: nf-core / Nextflow, pipelines, entorno de ejecución"
+        - "Artefactos de proveniencia: manifiesto, protocolo, conteo de intervenciones, dossier"
+        - "Agente base: sesiones, herramientas, TUI, proveedores de modelos"
+        - "Instalación, empaquetado o distribución"
+        - "Documentación"
+        - "No lo sé"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas que has considerado
+      description: Incluye lo que ya se puede hacer hoy y por qué no basta.
+    validations:
+      required: false

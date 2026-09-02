@@ -1,0 +1,45 @@
+# nf-core pipeline execution workflow
+
+This skill describes the end-to-end shape of running any nf-core pipeline. It is the map;
+individual steps have (or will have) their own skills and tools with the concrete procedures.
+
+## The five stages
+
+1. **Pipeline selection.** Translate the biological question into a specific nf-core pipeline
+   and release using the `nfcore_pipeline_search` tool — it queries nf-core's own registry
+   (cached, works offline) and returns each candidate's description, latest stable release, and
+   the Nextflow version that release requires. Read the descriptions, pick the best fit, default
+   to the latest stable release, and confirm the choice with the scientist before moving on.
+   Only nf-core pipelines are in scope — never a third-party Nextflow workflow.
+
+2. **Environment preparation.** Confirm the machine can run the pipeline before building
+   anything: Nextflow present and at a compatible version, a working container backend
+   (Docker preferred, conda/mamba as fallback), and enough CPU/RAM (and GPU where relevant).
+   See the `nfcore-environment` skill for the detection-and-repair policy.
+
+3. **Samplesheet construction.** Build the pipeline's samplesheet from a plain description of
+   the scientist's data folder. Use `nfcore_samplesheet_schema` to read the real columns from
+   that pipeline's `assets/schema_input.json`, inspect files by name/header only (never read a
+   whole genomic file), map files to samples, ask the scientist when grouping or read pairing is
+   ambiguous, then `nfcore_samplesheet_validate` before writing the CSV. The `nfcore-samplesheet`
+   skill has the full protocol. A wrong samplesheet silently corrupts every downstream result.
+
+4. **Execution.** Build the command with `nfcore_run_command` (it pins the release and picks the
+   backend), then run it **through the shell tool**, which shows the exact command and asks for
+   approval. Run the pipeline's built-in **test profile first** (`mode: "test"`) to prove the
+   setup works, then the real data (`mode: "run"`). Both count as compute and require approval;
+   the test run is the session's first approval gate. The `nfcore-run` skill has the
+   full protocol.
+
+5. **Failure and recovery.** When a run fails, do not blindly retry. Use `nfcore_diagnose` on the
+   run directory to identify the actual cause, explain it in plain language, offer a specific fix
+   and ask before applying it, then re-run with `nfcore_run_command` and `resume: true` rather
+   than starting over. If the cause is beyond what you can fix (hardware limits, permissions,
+   external outages), say so plainly and stop. The `nfcore-failure` skill has the full sequence.
+
+## Operating rules that apply throughout
+- Show every consequential command before running it; get approval for compute and for data
+  writes/deletes.
+- Surface and justify parameter defaults only when asked — do not narrate them proactively.
+- Keep raw data local; pass only summaries, headers, and log excerpts to your own reasoning.
+- Be honest about uncertainty and about failure; never fabricate a result or a version.

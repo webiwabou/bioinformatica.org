@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Map SEQRES positions onto the residues that actually have 3D coordinates.
+
+The deposited sequence (SEQRES) and the residues present in the coordinate section
+(ATOM/HETATM) are different things: unresolved loops, engineered tags and author
+numbering that does not start at 1 all break any assumed correspondence. This aligns the
+two explicitly and derives the mapping from the alignment.
+
+Output (JSON on stdout):
+  {"chain": "A",
+   "seqres_length": 437,
+   "observed": 430,
+   "map": [{"seqres_pos": 1, "aa": "M", "resseq": 1, "icode": " "}, ...]}
+
+`seqres_pos` is 1-based into SEQRES. `resseq`/`icode` are the AUTHOR numbering, which is
+what SIFTS, RepeatsDB and the mmCIF auth_seq_id all use. Positions with no coordinates
+are omitted from `map` rather than emitted with a null, so a consumer cannot accidentally
+treat an unmodelled position as residue 0.
+
+Usage: map-seqres-atom.py <structure.cif|structure.pdb> <auth_chain_id>
+"""
+import json
+import sys
+import warnings
+
+from Bio import BiopythonWarning
+from Bio.Align import PairwiseAligner, substitution_matrices
+from Bio.Data.PDBData import protein_letters_3to1_extended as THREE_TO_ONE
+from Bio.PDB import MMCIFParser, PDBParser
+from Bio.PDB.Polypeptide import is_aa
+
+warnings.simplefilter("ignore", BiopythonWarning)
+
+
+def one_letter(resname):
+    """MSE -> M, not X.
+
+    The extended table maps modified residues to their parent amino acid. Falling back to
+    'X' for selenomethionine would make it mismatch its own SEQRES entry and shift the
+    alignment at every SeMet position.
+    """
+    return THREE_TO_ONE.get(resname.strip().upper(), "X")
+
+
+def read_seqres(path, chain_id):
+    """SEQRES for one AUTHOR chain, as a one-letter string.
+
+    Deliberately NOT SeqIO's "cif-seqres": that reports the LABEL asym id, while the
+    coordinate section is keyed by the AUTHOR chain. For 12E8 the SEQRES records come
+    back as A/B/C/D while the chains present in the model are L/H/M/P, so matching on
+    the SeqIO id finds nothing for every entry where the two numbering schemes differ —
+    and silently succeeds for the ones where they happen to coincide.
+
+    `_entity_poly.pdbx_strand_id` is the authoritative auth-chain list per entity, and
+    `_entity_poly.pdbx_seq_one_letter_code_can` is the canonical SEQRES for it (the
+    non-canonical field writes modified residues as "(MSE)").
+    """
+    if path.endswith((".cif", ".mmcif")):
+        from Bio.PDB.MMCIF2Dict import MMCIF2Dict
+
+        d = MMCIF2Dict(path)
+        strands = d.get("_entity_poly.pdbx_strand_id")
+        seqs = d.get("_entity_poly.pdbx_seq_one_letter_code_can")
+        if not strands or not seqs:
+            return None
+        if isinstance(strands, str):
+            strands, seqs = [strands], [seqs]
+        for strand_list, seq in zip(strands, seqs):
+            if chain_id in [s.strip() for s in strand_list.split(",")]:
+                # mmCIF wraps long values across lines.
+                return "".join(seq.split())
+        return None
+
+    # PDB format records SEQRES against the author chain directly.
+    from Bio import SeqIO
+
+    for record in SeqIO.parse(path, "pdb-seqres"):
+        if record.id.split(":")[-1] == chain_id:
+            return str(record.seq)
+    return None
+
+
+def read_atom_residues(path, chain_id):
+    """Ordered (residue_object, one_letter) for every amino acid with coordinates.
+
+    HETATM residues are KEPT when they are amino acids — MSE is a HETATM in most
+    crystal structures, and dropping it would punch holes in both the sequence and any
+    fragment cut from it.
+    """
+    parser = MMCIFParser(QUIET=True) if path.endswith((".cif", ".mmcif")) else PDBParser(QUIET=True)
+    structure = parser.get_structure("s", path)
+    model = next(structure.get_models())  # model 0; NMR ensembles have many
+    if chain_id not in [c.id for c in model]:
+        return None
+    out = []
+    for residue in model[chain_id]:
+        # standard=False keeps modified residues such as MSE.
+        if not is_aa(residue, standard=False):
+            continue
+        out.append((residue, one_letter(residue.get_resname())))
+    return out
+
+
+def main():
+    if len(sys.argv) != 3:
+        sys.exit("usage: map-seqres-atom.py <structure.cif|pdb> <auth_chain_id>")
+    path, chain_id = sys.argv[1], sys.argv[2]
+
+    seqres = read_seqres(path, chain_id)
+    if seqres is None:
+        sys.exit(f"no SEQRES for author chain {chain_id!r} in {path}")
+    residues = read_atom_residues(path, chain_id)
+    if not residues:
+        sys.exit(f"no amino-acid residues with coordinates for author chain {chain_id!r}")
+    atom_seq = "".join(letter for _, letter in residues)
+
+    aligner = PairwiseAligner()
+    aligner.mode = "global"
+    aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
+    aligner.open_gap_score = -11
+    aligner.extend_gap_score = -1
+    # Missing termini are a fact of crystallography, not a mismatch to be penalised.
+    aligner.target_end_gap_score = 0.0
+    aligner.query_end_gap_score = 0.0
+
+    alignment = aligner.align(seqres, atom_seq)[0]
+
+    mapping = []
+    # `alignment.aligned` gives paired blocks of (start, end) index ranges: the gaps are
+    # exactly the positions it omits, so no gap character has to be counted by hand.
+    for (t_start, t_end), (q_start, q_end) in zip(*alignment.aligned):
+        # `aligned` yields numpy integers; int() keeps the output JSON-serialisable and
+        # keeps downstream comparisons plain Python.
+        for offset in range(int(t_end) - int(t_start)):
+            seqres_index = int(t_start) + offset
+            residue, letter = residues[int(q_start) + offset]
+            _, resseq, icode = residue.get_id()
+            mapping.append(
+                {
+                    "seqres_pos": seqres_index + 1,
+                    "aa": letter,
+                    "resseq": int(resseq),
+                    "icode": icode,
+                }
+            )
+
+    json.dump(
+        {
+            "chain": chain_id,
+            "seqres_length": len(seqres),
+            "observed": len(mapping),
+            "map": mapping,
+        },
+        sys.stdout,
+    )
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,7 @@
+Record the standing objective for this project: what the scientist is trying to achieve, what would count as done, which decisions are already fixed, and the stages of the work.
+
+Call this once you and the scientist have agreed what the investigation is — before starting any long-running stage. The objective is written to `.bioinformatica/objective.json` in the project directory and is restated to you at the start of every turn, so it survives context compaction and a fresh session. A campaign outlives a context window; this is what stops you drifting from, or forgetting, what you were doing.
+
+Put every scientific choice the work depends on into `decisions` — thresholds, which fields are searched, what counts as already-known, cutoffs. A long unattended stage cannot stop to ask a question, so anything unrecorded will be silently defaulted.
+
+Call it again to update the objective as the work is refined; it overwrites.

@@ -1,0 +1,32 @@
+# Building an nf-core samplesheet
+
+A samplesheet is the CSV that tells an nf-core pipeline which files belong to which sample.
+Getting it wrong silently corrupts every downstream result, so this step is careful and
+asks before guessing.
+
+## Protocol
+1. **Get the real columns.** Call `nfcore_samplesheet_schema` with the pipeline name. It reads
+   that pipeline's own `assets/schema_input.json` and returns the exact columns, which are
+   required, allowed enum values, and file-path patterns. Never invent column names from memory.
+
+2. **Inspect the data by name and header only.** Use `glob`/`bash` to list the folder and read
+   file names. When needed, peek at a header (e.g. `zcat file.fastq.gz | head -1`) — never read
+   a whole genomic file into context. Work from paths, not contents.
+
+3. **Map files to samples.** Infer sample IDs and read pairing from the naming convention
+   (`_R1_`/`_R2_`, `_1`/`_2`, lane `L00x`, sample prefixes). Prefer absolute paths.
+
+4. **Ask when ambiguous — do not guess.** If it is unclear which file is R1 vs R2,
+   which files belong to which sample, whether data is paired- or single-end, or how to fill a
+   required column (e.g. strandedness), use the question tool to ask the scientist before
+   building the sheet. A clarifying question is always cheaper than a wrong samplesheet.
+
+5. **Validate before writing.** Call `nfcore_samplesheet_validate` with the proposed rows. Fix
+   any reported problem (missing required column, bad enum, wrong file extension) before
+   continuing.
+
+6. **Write with approval.** Write `samplesheet.csv` using the write tool, which shows the file
+   and asks before writing. Show the scientist what you built.
+
+The pipeline runs its own full validation at run time; passing the pre-flight here means "no
+obvious errors", not "guaranteed correct".

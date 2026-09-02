@@ -1,0 +1,93 @@
+# Designing and running a discovery campaign
+
+Load this when the scientist states an outcome rather than a pipeline — "find X that nobody
+has catalogued", "screen everything in database D for property P", "confirm these candidates
+with independent evidence" — or whenever a pipeline search returns NO_SUITABLE_PIPELINE.
+
+A campaign is a multi-stage process you design, made of established tools you pin and run.
+It is held to the same nine conformance rules as any nf-core run (see your persona): pinned
+versions by digest, a recorded version per stage, declared inputs/outputs and parameters, a
+smoke run before the full run, idempotent checkpointing, mechanical checks, reproducibility
+from the manifest alone. Design the whole shape first and get it approved before running any
+stage — a campaign discovered one stage at a time is not reproducible and cannot be costed.
+
+## The five moves
+
+Most discovery campaigns are a rearrangement of these. Name which move each stage is.
+
+1. **Define the corpus.** What universe of entities is being screened, and from which
+   authoritative source? Fetch it once, snapshot it to disk with a version stamp, and work
+   from the snapshot for the rest of the campaign — never re-query live mid-campaign, or two
+   stages will silently disagree about what the corpus was.
+
+2. **Subtract what is already known.** In a novelty claim, the subtraction *is* the result:
+   whatever survives it is "novel" by construction. That makes the known set the most
+   dangerous input in the campaign. A silently truncated download of it does not weaken the
+   finding — it manufactures one. Assert completeness (rows written == count reported by the
+   source) and fail loudly. Never accept an empty result as "nothing found" without
+   distinguishing it from a failed request.
+
+3. **Prioritise, but keep the control arm.** A cheap heuristic that narrows an expensive
+   search is a *prioritiser*, not a filter — it trades recall for cost. Run the complement
+   (everything the heuristic excluded) at least at sample scale, and decide **before running**
+   what each outcome triggers: if the complement yields substantially more true positives than
+   the heuristic arm, the heuristic is dropped or demoted to a ranking, not reported in a
+   footnote. A control whose result changes nothing is theatre.
+
+4. **Require two evidence levels — and check they are independent.** A candidate supported at
+   one level is a hypothesis; supported at two independent levels it is a finding. Be honest
+   about "independent": if level 2 only ever examines regions that level 1 nominated, level 2
+   is *conditioned on* level 1, not independent of it. Say so. Genuine independence means both
+   screens run over the corpus separately and the finding is their intersection. Also ask what
+   the null is: a similarity score has no meaning without the distribution it would take on
+   matched random inputs drawn the same way.
+
+5. **Collapse, compute, propagate.** When the expensive stage scales badly, deduplicate first,
+   run it once per representative, then propagate results back to the members. This is only
+   valid if the collapse was *exact*. Read what your clustering tool actually means by its
+   identity threshold — several normalise by the shorter sequence, so a perfect substring
+   clusters at 100% identity and inherits coordinates that are offset from its own numbering.
+   Verify the collapse before trusting the propagation.
+
+## Rules that apply to every campaign
+
+**Coordinate spaces.** Every translation between coordinate systems — sequence to structure,
+full-length to fragment, one numbering scheme to another — is a stage with its own error, and
+those errors compound. Never assume two systems agree because they describe the same molecule.
+Measure the translation error where you can, and carry it as a tolerance into every stage that
+consumes the coordinates.
+
+**Turn budget: O(stages), not O(items).** Your turns are the scarce resource, not the compute.
+Any loop over more than a handful of items is written to a file as a script and executed once.
+A stage that consumed dozens of your tool calls is a design error, not a slow success — the
+context you need to finish the campaign is being spent on bookkeeping.
+
+**Front-load every decision.** Before a long stage starts, collect every scientific choice it
+depends on — thresholds, which fields are searched, what counts as already-known, cutoffs —
+into one approval batch, record them as fixed parameters, and refuse to start with any unset.
+A long unattended run cannot ask a question; it will stall or quietly default.
+
+**State the budget before the stage.** Say how many files a stage will write, roughly how much
+disk that is, and where. Check the target has room. Campaign scratch goes to a project-local or
+explicitly chosen directory — never the system temp directory, which is often a RAM disk.
+
+**When you cannot name the tool.** If a stage needs a specialised tool you cannot name with
+confidence, search the literature *before* proposing anything. Report which tool the field
+converges on, whether it is obtainable as pinnable software, and what changes scientifically if
+you substitute. Proposing whichever tool you half-remember turns a real decision into a silent
+substitution.
+
+**When the tool is unobtainable.** Say so, and why. Propose a conformant equivalent together
+with the alternatives you rejected and your reasons. Wait for approval. Then calibrate the
+substitute against something with known ground truth and report the measured agreement — the
+calibration is not a certificate, it is where the tolerance for the downstream stages comes
+from. If nothing conformant exists, produce a decision brief and stop. Never substitute
+silently: results that read as a reproduction of a published method, but are not, are worse
+than no results.
+
+## Reporting
+
+State the method as executed, not as designed — including every substitution, every parameter
+that differed from a default, and every stage that was skipped. Claim-type the output: what was
+computed, what was cited, what is your inference. A candidate list is data and belongs in a
+file; the report references it rather than containing it.

@@ -1,0 +1,90 @@
+# Acquiring and running a tool that has no nf-core module
+
+Load this when a stage needs a command-line tool Bioinformática.org has no dedicated tool for — a
+clustering program, an aligner, a structure comparator, a Python library. Installing and
+running an established, pinned tool is ordinary work you do yourself; it is not a reason
+to hand the step back to the scientist.
+
+## Pin it, then prove the pin
+
+Conformance rule 2 is a container digest or a versioned environment, never "whatever is on
+PATH". In order of preference:
+
+1. A **container pinned by digest**. Get the digest from the registry, not the tag — a tag
+   can be re-pushed and would silently change your results:
+   `docker pull quay.io/biocontainers/<tool>:<tag>` then record the `sha256:` it reports.
+2. A **versioned conda environment**: `conda create -n <env> -c conda-forge -c bioconda <tool>=<version>`.
+   Channel order matters — put conda-forge first or you may resolve a stale bioconda build
+   of a general-purpose library.
+3. Building from source, only when nothing else exists, and record the exact commit.
+
+Before you commit to any of these, check the package actually exists rather than assuming:
+`https://api.anaconda.org/package/bioconda/<name>` and the quay.io tag list answer this in
+one request each. **Never spend time building a tool to find out whether it is obtainable.**
+
+Then capture `<tool> --version` (or `-h | head -1`) into the campaign's versions record at
+every invocation — rule 3. A version you did not record is a result you cannot reproduce.
+
+## Five things about this shell that will waste a stage if you do not know them
+
+- **`conda activate` cannot work.** The shell is non-interactive and non-login, so no rc
+  file is sourced. Use `conda run -n <env> <command>` or call the absolute path into the
+  environment's `bin/`.
+- **stdin is closed.** Anything that stops to ask a question will hang until the timeout
+  expires and then be killed. Always pass `-y` / `--yes` / `--quiet`.
+- **stdout and stderr are merged** into one stream. If you need them apart, redirect
+  explicitly (`> out.log 2> err.log`).
+- **The default command timeout is two minutes, and there is no maximum.** For a long job
+  pass an explicit generous timeout rather than discovering the default the hard way.
+- **Output is truncated to roughly the last 2000 lines**, with the full text spilled to a
+  file whose path appears in the output. Do not try to read a large result back through the
+  model — have the script write a small summary file and read that instead.
+
+## Long jobs: detach, then poll
+
+A job that outlives one tool call must be detached properly:
+
+    nohup <command> > run.log 2>&1 &
+    echo started
+
+Two conditions, both required. The command's stdio must be redirected off the inherited
+pipes, and **the launching tool call must exit 0** — the process group is killed when the
+call is aborted, times out, or exits non-zero. The trailing `echo` is not decoration; it is
+what guarantees the zero exit.
+
+Then poll the log with `tail`, not with a sleep loop inside a tool call. Re-issuing the
+byte-identical command three times in a row is detected as a stuck loop and will stall.
+
+## Smoke run before the real run
+
+Rule 6: run the stage over a handful of items first and look at the output before launching
+it over the whole corpus. This is the same discipline as running a pipeline's test profile
+before the real data, and it catches the two things that otherwise surface hours later — a
+flag that means something different from what you assumed, and an output format your next
+stage cannot parse.
+
+## When the tool genuinely cannot be obtained
+
+Some tools are not software you can install: a web service behind a login, something whose
+distribution has gone dark, a license you may not redistribute under. Under conformance
+rules 2, 3 and 9 such a tool cannot be pinned, versioned or reproduced, so it is
+non-conformant regardless of whether access could be arranged.
+
+Do not stall, and do not quietly use something else. Produce a brief and stop:
+
+- **What the stage needs**, in one sentence, and what the canonical tool is.
+- **Why it cannot be obtained** — state what you actually checked (registries, containers,
+  source), not an impression.
+- **The options**, each with its cost and what it changes *scientifically*: obtain access;
+  substitute a conformant equivalent; re-specify the method; drop the stage.
+- **Your recommendation and your reasoning.**
+- **What you need from the scientist** to proceed.
+
+If they approve a substitute, calibrate it against something with known ground truth and
+report the measured agreement. The calibration is not a certificate — it is where the
+tolerance for the downstream stages comes from. A declared, measured substitution is honest
+work. A silent one produces results that read as a reproduction of a published method and
+are not.
+
+The same brief format applies to any wall, not just a missing tool — credentials you do not
+have, hardware the machine lacks, an institutional decision that is not yours to make.

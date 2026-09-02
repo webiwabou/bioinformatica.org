@@ -1,0 +1,17 @@
+Plan and record a local fork of an nf-core pipeline for custom code changes.
+
+Use this only when a scientist needs to change a pipeline's *code*, not just its parameters
+— forking is the rarer, heavier option. The fork is pinned to one upstream release so the
+adaptation stays reproducible and can be diffed against a known point.
+
+Given a pipeline and release:
+- If the fork does not exist yet, the tool returns the exact `git clone --branch <release>`
+  command to run through the shell tool (it writes files, so it asks for approval) and the
+  visible folder it will land in: `pipelines/<name>-fork/`. That folder is the scientist's
+  working code — it is NOT hidden in .bioinformatica.
+- If the fork is already on disk, the tool records its provenance (pipeline, release, and
+  the pinned commit) under .bioinformatica/ and reports its current status.
+
+After forking: keep the fork conformant with `nfcore_lint`, run it like any pipeline
+(`nextflow run ./pipelines/<name>-fork -profile test,...`), and use `nfcore_fork_status`
+to see exactly how it has diverged from upstream.

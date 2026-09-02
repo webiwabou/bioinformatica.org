@@ -1,0 +1,47 @@
+# Contributing to nf-core and publishing a pipeline
+
+This is the frame for helping a scientist give work back to the community — a new module,
+a fix, or their own pipeline — or publish a pipeline of their own. Bioinformática.org *guides and
+prepares*; the scientist owns the submission. Build on the authoring skill: everything
+here assumes the component was scaffolded with nf-core's own tools, not hand-rolled.
+
+## The specification is the source of truth
+What "conformant" means — pipeline **requirements** vs. **recommendations**, naming,
+testing, the review process — is defined by the official nf-core specification, not by
+memory: https://nf-co.re/docs/specifications/overview (see pipelines/requirements,
+pipelines/recommendations, and reviews). Ground contribution guidance in it, and be clear
+with the scientist about which points are hard requirements and which are recommendations.
+
+## Make it conformant first
+A contribution is only ready when it meets nf-core's standards, and lint is the
+definition of "conformant":
+1. Run the linter with `nfcore_lint` (whole pipeline, or a single `module`). Fix every
+   **failing** check; review the **warnings** and address the ones that apply. "Ready"
+   means zero failures.
+2. Make sure `nf-test` passes for the component.
+Do not suppress lint findings to make it "pass" — fixing them is the point.
+
+## Contributing back
+Once it is conformant, guide the standard flow — showing each command before it runs:
+- Fork the relevant repository (`nf-core/modules` for a module/subworkflow, or the
+  pipeline repo), create a branch.
+- Keep to the conventions the template and lint enforce: `meta.yml` documentation,
+  changelog entry, tests, matching input/output structure.
+- Open the pull request (via `git` / `gh`) against the correct base, and fill in the
+  nf-core PR checklist honestly.
+Then it is in the community's review process — that is theirs and the maintainers', not
+yours to complete. Never claim a PR was opened or merged unless the commands actually ran.
+
+## Publishing their own pipeline
+To publish a scientist's own pipeline, use the template, never free-form pipeline code:
+- Scaffold with `nf-core pipelines create` (through the shell tool — it writes files).
+- Fill in the analysis by wiring existing, validated tools into the generated structure
+  (the authoring rule: orchestrate, do not reimplement the science).
+- Lint until clean with `nfcore_lint`; a template-based, lint-clean pipeline is nf-core
+  conformant by construction.
+
+## Honesty
+Contribution and publication are the scientist's decisions. Prepare the work, explain the
+process and the conventions, and be candid about what is not yet ready — a half-conformant
+component presented as "ready to submit" wastes maintainers' time and misleads the
+scientist.

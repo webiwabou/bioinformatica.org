@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@bioinformatica/cli",
+  "version": "1.17.18",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "bioinformatica-cli": "./bin/bioinformatica-cli.cjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "build": "bun run script/build.ts",
+    "dev": "bun run src/index.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@effect/platform-node": "catalog:",
+    "@bioinformatica/core": "workspace:*",
+    "@bioinformatica/sdk": "workspace:*",
+    "@bioinformatica/server": "workspace:*",
+    "@bioinformatica/tui": "workspace:*",
+    "@opentui/core": "catalog:",
+    "@opentui/solid": "catalog:",
+    "@parcel/watcher": "2.5.1",
+    "effect": "catalog:",
+    "solid-js": "catalog:"
+  },
+  "devDependencies": {
+    "@bioinformatica/script": "workspace:*",
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

@@ -1,0 +1,75 @@
+# Pulling a corpus from a public database at scale
+
+Load this when a stage needs more than a handful of records from a public database — the
+full set of entries matching a query, a whole reviewed subset, a cross-reference mapping.
+The single-record lookup tools (`protein_lookup`, `structure_lookup`, `gene_lookup`,
+`pathway_lookup`, `pubmed_search`) are for citing a specific fact. They are the wrong
+instrument for building a corpus: they return prose, they do not paginate, and they cannot
+write anything to disk.
+
+For a corpus, write a script and run it once. The turn budget is O(stages), not O(records).
+
+## An empty result is not the same as no data
+
+This is the rule that matters most, and it is the one that silently ruins a study.
+
+A request that was rate-limited, rejected for an oversized page, or served an error body
+with a `200` status looks exactly like a genuine "nothing matched" unless you make it look
+different. Write the fetcher so that:
+
+- **HTTP failures are typed and loud.** Never let a failed request become an empty list.
+- **The row count is asserted.** Most APIs report the total (a `X-Total-Results` header, a
+  `total` field, a `count` in the envelope). Compare it against what you actually wrote and
+  fail if they differ. Do not "continue with what we got".
+- **GraphQL is checked for an `errors` array**, which arrives with a `200`.
+- **Partial output is never left in place.** Write to a temporary path and rename on
+  success, so a half-finished download cannot be mistaken for a complete corpus.
+
+Where the corpus is a *known set that will be subtracted* — everything already annotated,
+everything already published — this is not a robustness nicety. The subtraction is the
+result: whatever survives it is called novel. A silently truncated download of the known
+set does not weaken the finding, it manufactures one.
+
+## Rate limits and pagination
+
+Respect the published limit per host and serialise per host rather than firing everything
+at once; a burst that trips a limiter costs more wall-clock than pacing does, and the
+failures are silent. Where a service offers an API key that raises the limit, use it if the
+scientist has one, and identify yourself where the service asks you to.
+
+Follow the service's own pagination contract — a cursor, a `Link: rel=next` header, an
+offset — rather than assuming an offset parameter exists. An offset hard-coded to the first
+page is a corpus that is quietly one page long. Prefer a streaming or bulk-download
+endpoint over paging when the service offers one, and an official flat file over the API
+when one is published.
+
+## The snapshot is the corpus
+
+Fetch once, write it down, and work from what you wrote for the rest of the campaign. Never
+re-query live mid-campaign: two stages will disagree about what the corpus was, and you
+will not be able to tell which result is right.
+
+Write the data as one record per line (NDJSON) into a **visible project folder** — data and
+code are the scientist's, only bookkeeping belongs in `.bioinformatica/` — beside a manifest
+recording the source, the exact endpoint and query, the date, the upstream release or
+version stamp where the service publishes one, the row count, and a checksum. That manifest
+is what makes rule 9 true: a third party can re-run from it alone.
+
+State the disk budget before the stage runs — roughly how many files, how much space, and
+where — and check the target has room. Campaign scratch goes in a project-local or
+explicitly chosen directory. Do not use the system temp directory: it is commonly a RAM
+disk, and filling it takes the machine down rather than just failing the stage.
+
+## Know what is in the corpus before you screen it
+
+Public archives mix things that look alike. Predicted or computed models sit alongside
+experimental structures and often carry a distinguishing accession prefix or a method
+field; a set of entries can include obsoleted or superseded records; a "reviewed" subset is
+a filter you must ask for, not a default. Decide explicitly which of these belong in the
+corpus, record that decision as a fixed parameter, and apply it in the fetch rather than
+hoping a later stage filters it out.
+
+Finally, check the fields you actually need are in the projection you asked for. Most APIs
+return a default subset, and free-text fields — descriptions, comments, keywords,
+cross-references — are usually *not* in it. A text search over fields you never retrieved
+finds nothing, and looks exactly like a negative result.

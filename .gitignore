@@ -1,0 +1,54 @@
+.DS_Store
+node_modules
+.worktrees
+.sst
+.env
+.env.local
+.idea
+.vscode
+.codex
+*~
+playground
+tmp
+dist
+ts-dist
+.turbo
+**/.serena
+.serena/
+**/.omo
+.omo/
+/result
+refs
+Session.vim
+/bioinformatica.json
+a.out
+target
+.scripts
+.direnv/
+
+# Local dev files
+bioinformatica-dev
+UPCOMING_CHANGELOG.md
+logs/
+*.bun-build
+tsconfig.tsbuildinfo
+
+# Salidas de una ejecución: las escribe el agente o Nextflow, nunca son código fuente.
+
+# Estado del agente en el proyecto: manifiestos, protocolo, aprobaciones,
+# conteo de intervenciones, registro de ejecuciones.
+.bioinformatica/
+
+# Datos e informes que produce el agente en el directorio del proyecto.
+# La barra final es intencionada — sólo ignora directorios, para que `census.ts`,
+# `corpus.ts` y `dossier.ts` sigan versionándose.
+corpus/
+census/
+dossier/
+
+# Nextflow: directorio de trabajo, logs, caché e historial.
+work/
+.nextflow*
+
+# Resultados de pipelines (el `--outdir` por defecto de nf-core).
+results/

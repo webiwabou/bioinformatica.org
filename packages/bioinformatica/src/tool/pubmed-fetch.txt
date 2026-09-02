@@ -1,0 +1,5 @@
+Fetch a PubMed paper's abstract by its PMID.
+
+Use this after pubmed_search to read the abstract of a specific paper before citing or summarizing it — so a "cited" claim reflects what the paper actually says, not just its title. Pass the numeric PMID.
+
+Returns the abstract text (with title, authors, journal, and the abstract body). Read-only. Always attribute anything you take from it to that paper's citation.

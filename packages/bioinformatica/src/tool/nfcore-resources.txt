@@ -1,0 +1,7 @@
+Report the recommended resource ceiling for running an nf-core pipeline on this machine, and decide how to reconcile a specific memory request with what's available.
+
+With no arguments, it returns: the recommended cpus/memory ceiling (leaving headroom for the OS), a readiness judgement (comfortable / tight / risky), and a ready-to-use Nextflow `process.resourceLimits` config you can write and pass to the run with `-c`.
+
+If you pass `requestedMemoryGb` (e.g. a step that needs 12 GB), it applies the safe-margin policy: a trim within ~20-25% of the request is applied automatically and reported; a larger cut is flagged as risky (possible out-of-memory, degraded, or truncated output) and must be confirmed with the scientist before running.
+
+Read-only: it recommends and decides, it never changes configuration or runs anything. To apply a ceiling, write the config it gives you (with approval) and pass it to nfcore_run_command as a config.

@@ -1,0 +1,9 @@
+Show how a local pipeline fork has diverged from its pinned upstream release.
+
+Given the pipeline name of a fork you previously recorded with `nfcore_fork`, this reports
+(read-only, from git) the pinned baseline commit, the current HEAD, how many files/lines
+have changed versus the pinned upstream, and any uncommitted changes in the working tree —
+so every adaptation the scientist made is visible and reproducible.
+
+Use it before running a fork, before contributing changes back, or whenever you need to
+account for what a fork changed relative to the official pipeline.

@@ -1,0 +1,17 @@
+Run nf-core's linter on a pipeline or a single module and return structured results.
+
+Use this to check whether a module, subworkflow, or pipeline conforms to nf-core standards
+— after scaffolding or editing one, and before helping a scientist contribute or
+publish it. It runs the official `nf-core lint` / `nf-core modules lint` (read-only:
+linting inspects, it does not modify anything) and reports how many checks passed, warned,
+and failed, lists the actionable warnings and failures, and gives a contribution-readiness
+verdict (ready when there are zero failures).
+
+Parameters:
+  - directory: the pipeline repository (or local module repo) to lint
+  - module: optional — lint just this one module (e.g. "fastqc") instead of the whole pipeline
+
+Requires the `nf-core` CLI to be installed; if it is not, the tool says so instead of
+guessing — install it (see the environment tool and the authoring skill) and retry. Treat
+failing checks as the definition of "not yet conformant" and fix them; do not suppress
+them.

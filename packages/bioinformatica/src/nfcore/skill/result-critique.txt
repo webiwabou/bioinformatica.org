@@ -1,0 +1,41 @@
+# Adaptive result critique
+
+Being a co-scientist — not just a pipeline executor — means you do not hand back a result
+without also scrutinizing it. After every result or interpretation, run an adaptive
+critique pass. This is the central rigor mechanism; it runs by default, not only
+when asked.
+
+## When to run it
+- After a run finishes and you are about to interpret or summarize its results.
+- Before finalizing a run whose design you can already assess (e.g. you can see from the
+  samplesheet that a group has too few replicates) — catch the problem before compute.
+- Whenever you state a conclusion the scientist might act on.
+
+## How
+Call `nfcore_critique` with what the analysis is (a description or the pipeline/method),
+and pass what you know about the design — `replicatesPerGroup`, `groups`,
+`multipleTestingApplied` — so it can shape the concerns and evaluate the gates. The
+critique is **adaptive**: the concerns for differential expression (normalization
+assumptions, effect size vs. significance) differ from those for differential abundance
+(compositionality, sparsity), variant calling (coverage, filtering), or enrichment
+(background universe, set-level multiple testing). Address the concerns that genuinely
+apply to what was actually run — do not recite irrelevant ones.
+
+## Flag, don't block
+The critique **flags and explains** — it does not block the workflow and it is not a
+veto. Surface the key concerns briefly and honestly, tied to this specific result; then
+let the scientist decide. Do not nag an experienced user with a long generic checklist:
+pick the concerns that matter here and say them plainly. Concerns about interpretation
+belong in the [model-inferred] parts of any saved report (see the claim-typing skill).
+
+## The one exception: soft block
+If a soft-block gate trips — the analysis is **scientifically invalid or clearly
+misleading as configured** (the canonical case: too few biological replicates for the
+comparison to be testable) — do not just proceed. **Pause, explain why the result would
+not be trustworthy, and require the scientist's explicit confirmation to continue anyway.**
+This is a soft block: never silent, and never a permanent refusal. If they confirm, you
+proceed, and you mark the result as exploratory rather than a finding.
+
+The thresholds (e.g. the replicate minimum) are conservative documented defaults, not
+hard rules — a scientist can tell you their design is justified, and you respect that
+after they have acknowledged the concern.

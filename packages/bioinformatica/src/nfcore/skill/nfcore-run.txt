@@ -1,0 +1,39 @@
+# Running an nf-core pipeline
+
+Running a pipeline is compute: the exact command is always shown and always requires the
+scientist's approval before it executes. This is true for the test profile too — it is the
+session's first approval gate, with no exception for being small or canonical.
+
+## Protocol
+1. **Confirm the environment is ready.** Use the `environment` tool; a run needs Nextflow and a
+   container backend (Docker or conda). Fix anything missing first (see `nfcore-environment`).
+
+2. **Build the command, don't hand-write it.** Use `nfcore_run_command` with the pipeline name.
+   It pins the latest stable release, picks the backend from the environment, and returns the
+   exact `nextflow run ...` command. It builds the command; it does not run it.
+
+3. **Test profile first.** Build with `mode: "test"` and run that command **through the
+   shell/bash tool** — that is what shows the command and asks for approval. The test profile
+   runs the pipeline on tiny bundled data to prove the setup works. Do not skip it.
+
+4. **Real data next.** Only after a clean test run, build with `mode: "run"`, passing the
+   `input` samplesheet you validated earlier and an `outdir`. Before a real run, check
+   `nfcore_resources`: if the machine is tight or a step would exceed memory, write the
+   resource-limits config it recommends (with approval) and pass it via `configs`. Apply trims
+   within the safe margin automatically and report them; ask first for larger cuts.
+   Run through the shell tool the same way — shown, approved, then executed.
+
+If the scientist asks what a parameter does or which options exist, use `nfcore_params` to
+explain it from the pipeline's schema. Do this only on request — do not narrate parameter
+defaults proactively.
+
+5. **Watch the run.** Nextflow streams progress. If it fails, do not blindly retry — diagnose,
+   explain, and prefer `-resume` once the cause is fixed (that is the failure-recovery step).
+
+6. **Record it.** After launching and again when it finishes, call `nfcore_record` with the
+   pipeline, release, backend, mode, exact command, outdir, and status (started / succeeded /
+   failed) so the investigation folder keeps a re-readable history in .bioinformatica/runs/. Approvals
+   are logged automatically — you don't record those.
+
+Never run a pipeline command directly without showing it and getting approval, and never run
+real data before a successful test-profile run.

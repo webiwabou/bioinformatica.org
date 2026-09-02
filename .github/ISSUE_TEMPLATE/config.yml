@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Preguntas y discusión
+    url: https://github.com/bioinformatica-org/bioinformatica/discussions
+    about: Dudas de uso, cómo hacer algo, o ideas que todavía no son una propuesta concreta.
+  - name: Documentación
+    url: https://bioinformatica.org
+    about: Instalación, configuración y guía de uso.
+  - name: Reportar un problema de seguridad
+    url: https://github.com/bioinformatica-org/bioinformatica/security/advisories/new
+    about: Los fallos de seguridad se reportan en privado, nunca como una issue pública.

@@ -1,0 +1,11 @@
+Search the nf-core pipeline registry to find the right pipeline for a biological question.
+
+Only nf-core pipelines are in scope — never a third-party Nextflow workflow. Use this to translate what the scientist wants (e.g. "RNA-seq differential expression", "bacterial genome assembly", "variant calling from WGS") into a specific nf-core pipeline before doing anything else.
+
+The registry is nf-core's own published list, cached locally so it works offline after the first sync. For each match it returns the pipeline's full name, description, topics, latest stable release, and the Nextflow version that release requires.
+
+Guidance:
+- Search with the scientist's intent in plain terms; read the descriptions and pick the best fit.
+- Default to the latest stable release. A pipeline shown as "dev only" has no stable release yet — avoid it unless the scientist explicitly asks.
+- Confirm the chosen pipeline with the scientist before preparing an environment or building a samplesheet.
+- This tool is read-only; it selects, it does not download or run anything.

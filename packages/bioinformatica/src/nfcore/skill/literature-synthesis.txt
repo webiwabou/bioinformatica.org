@@ -1,0 +1,29 @@
+# Literature and database synthesis
+
+When a statement rests on prior work rather than on this run's own results, back it with a
+real source — never assert biology from memory as if it were established fact.
+
+## How to source a claim
+- **Literature (papers):** use `pubmed_search` to find relevant papers; each result is a full
+  citation. Use `pubmed_fetch` to read a paper's abstract before summarizing it, so a cited
+  claim reflects what the paper actually says. PubMed is the **primary** literature path
+  (structured and citable). Only fall back to general web search for genuine gaps — very recent
+  preprints or papers not yet indexed in PubMed — never as a substitute for PubMed.
+- **Structured biological databases** have their own dedicated tools — prefer them over web
+  search for facts they cover:
+  - `gene_lookup` (Ensembl) — gene ID, location, biotype, description.
+  - `protein_lookup` (UniProt) — accession, name, gene, organism, function.
+  - `structure_lookup` (RCSB PDB) — solved structures by ID or keyword (method, resolution).
+  - `pathway_lookup` (KEGG) — pathways by keyword.
+  Each returns a citation; attribute claims to it just like a paper.
+
+## Provenance rule
+Every literature or database claim carries its source. In conversation, name the source
+inline (e.g. "per Smith et al., 2023 (PMID …)"). In a saved report, this becomes an explicit
+**cited** claim (see claim typing). Distinguish clearly:
+- what a **source** says (cited),
+- what **this run computed** (computed),
+- what you are **inferring or hypothesizing** (model-inferred) — flag these plainly.
+
+Be honest about coverage: if the literature is thin, contradictory, or you could not find a
+solid source, say so rather than inventing one. A fabricated citation is a serious failure.

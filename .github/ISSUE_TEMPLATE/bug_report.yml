@@ -1,0 +1,143 @@
+name: Informe de error
+description: Reportar un fallo de Bioinformática.org que deba corregirse
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportarlo. Escribe con tus propias palabras y sé concreto: los
+        volcados largos generados por IA se ignoran o se cierran sin revisar.
+
+        Si crees que has encontrado un problema de seguridad, **no abras una issue**:
+        sigue [SECURITY.md](https://github.com/bioinformatica-org/bioinformatica/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción
+      description: Qué esperabas que ocurriera y qué ocurrió en su lugar.
+      placeholder: Al pedirle que lanzara nf-core/rnaseq, el agente...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Pasos para reproducirlo
+      description: |
+        Lo mínimo que otra persona necesita para llegar al mismo fallo. Si el problema
+        aparece con una pregunta concreta al agente, cópiala literalmente.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versión
+      description: La salida completa de `bioinformatica --version`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operativo
+      description: Distribución y versión. Si usas WSL o un contenedor, dilo aquí.
+      placeholder: "p. ej. Ubuntu 24.04, macOS 15.3 (arm64), Windows 11 + WSL2, Rocky Linux 9 en HPC"
+    validations:
+      required: true
+
+  - type: input
+    id: provider-model
+    attributes:
+      label: Proveedor y modelo
+      description: |
+        El proveedor y el identificador exacto del modelo con el que ocurrió el fallo.
+        `bioinformatica models` los lista tal y como hay que escribirlos aquí.
+      placeholder: "p. ej. anthropic / claude-sonnet-4-5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ablation
+    attributes:
+      label: ¿Ocurre también con la capa de especialización desactivada?
+      description: |
+        Repite el intento con `BIOINFORMATICA_ABLATE=all`, que apaga las cuatro partes de la
+        capa de especialización bioinformática (persona, skills, herramientas y proveniencia)
+        y deja funcionando el agente base heredado de opencode:
+
+        ```
+        BIOINFORMATICA_ABLATE=all bioinformatica run "…"
+        ```
+
+        Esto es lo que distingue un fallo del dominio de un fallo del agente base, y decide
+        quién debe arreglarlo. Para comprobar qué queda activo:
+        `BIOINFORMATICA_ABLATE=all bioinformatica debug ablation`.
+      options:
+        - "Sí: también falla con BIOINFORMATICA_ABLATE=all (apunta al agente base)"
+        - "No: con BIOINFORMATICA_ABLATE=all funciona bien (apunta a la capa de bioinformática)"
+        - "No lo he probado"
+        - "No aplica: el fallo es de instalación, arranque o de la propia CLI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Entorno de ejecución
+      description: |
+        Sólo si el fallo tiene que ver con ejecutar un pipeline. Versiones de Nextflow
+        (`nextflow -version`), de nf-core tools si la usas, el backend de contenedores
+        (docker, singularity, conda) y el ejecutor (local, slurm, …).
+      placeholder: |
+        Nextflow 25.04.6
+        nf-core/tools 3.2.0
+        singularity 4.1.3, ejecutor slurm
+    validations:
+      required: false
+
+  - type: input
+    id: pipeline
+    attributes:
+      label: Pipeline y revisión
+      description: Si aplica, el pipeline nf-core y la revisión exacta que se estaba usando.
+      placeholder: "nf-core/rnaseq 3.19.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Registros y capturas
+      description: |
+        Pega el error tal cual (dentro de un bloque de código) o adjunta una captura.
+        Si el fallo es de un pipeline, `.nextflow.log` y el directorio `work/` de la
+        tarea que falló suelen contener la causa real.
+
+        Revisa que no vayan claves de API, rutas privadas ni datos de pacientes.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal
+      description: Sólo si el fallo es visual o de la TUI.
+      placeholder: "p. ej. Ghostty, Alacritty, iTerm2, Windows Terminal"
+    validations:
+      required: false
+
+  - type: input
+    id: plugins
+    attributes:
+      label: Plugins
+      description: Plugins o servidores MCP que tuvieras configurados.
+    validations:
+      required: false

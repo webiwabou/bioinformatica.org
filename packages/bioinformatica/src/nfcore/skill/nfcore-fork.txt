@@ -1,0 +1,36 @@
+# Forking and adapting a pipeline locally
+
+Sometimes a scientist needs to change a pipeline's *code*, not just its parameters — a
+custom step, a tweaked module, a modified config that params cannot express. That means
+forking. Treat it as the rarer, heavier path: reach for it only when configuration and
+parameters genuinely cannot achieve what they need.
+
+## The model (visible fork, provenance in .bioinformatica)
+- The fork's code is the **scientist's working content** and lives in a **visible** project
+  folder — `pipelines/<name>-fork/` — never hidden inside `.bioinformatica/`.
+- It is **pinned to one upstream release**, so the adaptation is reproducible and can be
+  diffed against a known point.
+- Only the fork's **provenance and diff** go in `.bioinformatica/` (the same bookkeeping layer as
+  runs and manifests).
+
+## The workflow
+1. **Plan** the fork with `nfcore_fork` (pipeline + release). It gives you the exact
+   `git clone --branch <release>` command and the target folder.
+2. **Run the clone** through the shell tool — it writes files, so it asks for approval.
+3. **Record** it by calling `nfcore_fork` again once the folder exists; Bioinformática.org pins the
+   baseline commit and stores the provenance.
+4. **Make the change** in `pipelines/<name>-fork/`, then keep it conformant: run
+   `nfcore_lint` on the fork and fix findings (a fork that drifts out of nf-core
+   conformance is harder to trust and to contribute back).
+5. **Run** the fork like any pipeline: `nextflow run ./pipelines/<name>-fork -profile
+   test,<backend> --outdir …`, test profile first (same approval and run rules as always).
+6. **Account for the divergence** with `nfcore_fork_status` — it shows exactly which files
+   and how many lines changed versus the pinned upstream, so the adaptation is never a
+   silent, unrecorded modification.
+
+## Reproducibility and contributing back
+Because the fork is pinned and its diff is recorded, the adaptation is reproducible and
+auditable. If the change is generally useful, it is a candidate to contribute back — hand
+off to the contribution skill, which lints it to conformance and guides the PR. Never
+present a forked, modified pipeline's results as if they came from the official pipeline:
+say plainly that it is a fork, pinned to which release, with which changes.

@@ -1,0 +1,82 @@
+# Release.
+#
+# Before this workflow existed the packaging chain was complete and unreachable:
+# `packages/bioinformatica/script/build.ts` already ends in a `gh release upload`, and
+# nothing ever invoked it. `git tag -l` returned zero, so there was no release at all
+# and no run of the agent could be cited against a fixed, downloadable version.
+#
+# It is triggered by pushing a version tag, so the tag is the release — which is
+# also what the version derivation in `packages/script/src/index.ts` now reads.
+#
+# NOTE: publishing to npm / ghcr / AUR / Homebrew is deliberately NOT wired here.
+# Those targets are immutable in practice — a registry name, a container tag and a
+# DOI cannot be taken back — and `packages/bioinformatica/script/publish.ts` guards
+# them with `Identity.assertPublishable()`. This workflow publishes exactly what is
+# reversible: a GitHub release with binaries and their checksums.
+
+name: release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build a release for"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0 # version derivation reads git tags
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Resolve version from the tag
+        id: version
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Create the release to upload into
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ steps.version.outputs.tag }}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "${{ steps.version.outputs.tag }}" \
+                 --repo "$GITHUB_REPOSITORY" \
+                 --title "${{ steps.version.outputs.tag }}" \
+                 --notes "Binaries for each supported platform, and a SHA256SUMS file to check them against, are attached below." \
+                 --draft
+
+      - name: Build binaries and upload with checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BIOINFORMATICA_VERSION: ${{ steps.version.outputs.version }}
+          BIOINFORMATICA_CHANNEL: latest
+          BIOINFORMATICA_RELEASE: "1"
+        run: bun run --cwd packages/bioinformatica script/build.ts
+
+      # The whole point of shipping checksums is that a third party can verify what
+      # they downloaded. Prove the checksum file is usable before the release
+      # stops being a draft.
+      - name: Verify the published checksums
+        run: |
+          cd packages/bioinformatica/dist
+          sha256sum --check SHA256SUMS

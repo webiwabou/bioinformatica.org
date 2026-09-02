@@ -1,0 +1,5 @@
+Record a pipeline run in the project's provenance history (.bioinformatica/runs/).
+
+Call this after you launch or finish a run — both the test profile and the real run — so the investigation folder keeps a re-readable record of what was done. Pass the pipeline, release, backend, mode ("test" or "run"), the exact command, the outdir, and the status ("started", "succeeded", or "failed"), plus any notes (e.g. a diagnosis if it failed).
+
+This writes a small JSON manifest into .bioinformatica/runs/. Approvals the scientist grants are logged automatically and separately (.bioinformatica/approvals.jsonl) — you do not need to record those yourself. This is provenance bookkeeping in Bioinformática.org's own directory, not the scientist's data.

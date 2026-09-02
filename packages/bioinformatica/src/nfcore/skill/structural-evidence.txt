@@ -1,0 +1,87 @@
+# Validating a sequence-level finding against 3D structure
+
+Load this when a candidate identified from sequence has to be confirmed in experimental
+structure — repeats, domains, internal symmetry, any claim of the form "these regions are
+really the same thing".
+
+## The claim you are actually making
+
+"The two levels agree" is only evidence if the levels are independent. If the structural
+comparison examines only the regions the sequence stage nominated, it is *conditioned on*
+the sequence hypothesis, not independent of it — say so plainly rather than describing it
+as two-level confirmation. Genuine independence means both screens run over the corpus
+separately and the finding is their intersection.
+
+A similarity score also means nothing without the distribution it would take on matched
+random inputs. Structural similarity measures are calibrated on whole domains; at
+fragment length the same number does not carry the same meaning, and two fragments cut from
+one chain share composition and packing environment by construction. Build the background:
+cut length- and composition-matched random fragments from the same chains, run them through
+the identical path, and report the candidate distribution against that background rather
+than a count above a threshold. Add positive controls — entries whose boundaries are
+already annotated — to show the pipeline recovers what is known.
+
+## Collapse before you compute, but verify the collapse
+
+Deduplicating and running the expensive stage once per representative is right, and the
+propagation back to cluster members is only valid if the collapse was exact.
+
+Read what your clustering tool means by its identity threshold. Several — CD-HIT among them
+— define global identity as identical residues divided by the length of the **shorter**
+sequence. At 100% identity a sequence that is a perfect *substring* of a longer one
+therefore clusters with it, and inherits coordinates offset from its own numbering. Require
+full-length correspondence explicitly:
+
+    cd-hit -i in.fasta -o rep.fasta -c 1.0 -n 5 -d 0 -s 1.0 -aL 1.0 -aS 1.0 -M 0 -T 0
+
+`-d 0` matters as much as the rest: the default truncates the identifier in the cluster file
+at 20 characters, which silently mangles composite accessions. The `.clstr` file is the
+propagation map — a two-level text format where `*` marks each representative.
+
+## Sequence numbering is not structure numbering
+
+The deposited sequence and the residues that actually have coordinates are different
+things: unresolved regions, engineered tags, and author numbering that does not start at 1
+all break the correspondence. Align the two explicitly and derive the mapping from the
+alignment rather than assuming an offset. Read the two sequences with the dedicated
+SEQRES-versus-ATOM readers rather than parsing coordinates by hand, and use the modern
+pairwise aligner rather than the legacy interface.
+
+Every such translation carries its own error, and errors compound: a boundary uncertain by
+a few residues in sequence space, mapped through an alignment, becomes a fragment cut in
+the wrong place. Carry the measured uncertainty as an explicit tolerance into the cut.
+
+## Cutting fragments: two silent corruptions
+
+- **Convenience extractors drop HETATM residues.** Selenomethionine (`MSE`) is a HETATM and
+  is present in a large fraction of crystal structures, so the emitted fragment has holes
+  exactly where MSE sat — which biases every downstream RMSD and similarity score without
+  any error appearing. Write a residue selector that keeps modified residues.
+- **Insertion codes are commonly ignored.** Select on the pair (residue number, insertion
+  code); selecting on the number alone collapses `100`, `100A`, `100B` ambiguously.
+
+Also fix the model explicitly for multi-model entries, and prefer the archive's primary
+format — legacy fixed-column formats cannot represent large structures at all.
+
+## Running the comparison at scale
+
+Check before you parallelise: many structural aligners are strictly single-threaded, and
+several write to a fixed output name in the working directory, so parallel jobs sharing a
+directory silently overwrite each other's results. Give every job its own working
+directory.
+
+Check the defaults too. Quantitative output is often *off* by default — a multiple
+alignment may print an alignment while withholding the RMSD table that is the actual
+evidence you intend to report. Read the tool's own help text and pass the flag.
+
+For many small comparisons, per-process startup can dominate the real work. Where a tool
+offers a batch or all-against-all mode over a directory, use it rather than forking one
+process per pair. Structure-comparison suites also tend to ship extra binaries — format
+converters, sequence extractors, standalone aligners — which often remove the need for a
+separate dependency; look at what the package installed before adding one.
+
+## Budget it
+
+State, before the stage runs, how many fragment files it will write and how much space that
+is. Hundreds of thousands of small files is an inode problem before it is a disk-space
+problem, and it is not a system-temp-directory workload.

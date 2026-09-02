@@ -1,0 +1,18 @@
+Rank a set of candidate hypotheses transparently, for the opt-in brainstorm mode.
+
+Use this ONLY when a scientist has explicitly asked you to brainstorm or generate
+hypotheses / next experiments — never as a default response. First reason out the
+candidates yourself, then pass them here to be ranked reproducibly.
+
+For each hypothesis provide:
+  - statement: the hypothesis, stated as a precise, falsifiable claim
+  - grounding: what backs it — "cited" (a source), "computed" (this session's results), or
+    "model-inferred" (your own reasoning). Be honest; do not label a guess as cited.
+  - proposedTest: how it could be tested, ideally naming a concrete nf-core pipeline/analysis
+  - testability, plausibility, novelty: your 1-5 self-assessment of each
+
+The tool returns the hypotheses ranked by a fixed, documented weighting that favours
+grounding and testability over novelty (so a shiny but ungrounded, untestable idea cannot
+rank first). These are SPECULATIVE candidates, not findings: present them as such, critique
+the top ones by reusing the adaptive critique (nfcore_critique) on the proposed analysis,
+and let the scientist decide what to test. Never state a hypothesis as an established result.

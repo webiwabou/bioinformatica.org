@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Cut residue ranges out of one chain into standalone PDB fragments.
+
+Deliberately NOT Bio.PDB.Dice.extract. That helper has two defects that corrupt a
+structural comparison without raising anything:
+
+  1. It rejects every HETATM residue. Selenomethionine (MSE) is a HETATM and is present
+     in a large fraction of crystal structures, so the emitted fragment has holes exactly
+     where MSE sat — and every downstream RMSD and similarity score is computed over a
+     fragment that is quietly missing residues.
+  2. It range-tests on the residue number alone and only warns about insertion codes, so
+     an antibody-style chain numbered 82, 82A, 82B, 82C collapses ambiguously. In 12E8
+     chain H, residue 82 occurs four times.
+
+This selects on the ordered (resseq, icode) position within the chain instead, so a range
+means "these residues, in deposition order", which is what a repeat unit actually is.
+
+Input ranges are AUTHOR numbering, given as start:end where each endpoint is a residue
+number with an optional insertion code, e.g. "42:93" or "82:82C".
+
+Usage:
+  cut-fragments.py <structure.cif|pdb> <auth_chain_id> <outdir> <start:end> [<start:end> ...]
+"""
+import os
+import sys
+import warnings
+
+from Bio import BiopythonWarning
+from Bio.PDB import MMCIFParser, PDBIO, PDBParser, Select
+from Bio.PDB.Polypeptide import is_aa
+
+warnings.simplefilter("ignore", BiopythonWarning)
+
+
+def parse_point(text):
+    """'82A' -> (82, 'A'); '93' -> (93, ' ')."""
+    text = text.strip()
+    digits = "".join(c for c in text if c.isdigit() or c == "-")
+    icode = text[len(digits):].strip() or " "
+    return int(digits), icode
+
+
+class RangeSelect(Select):
+    """Accept residues whose (resseq, icode) falls in an ordered, inclusive window.
+
+    Membership is decided by POSITION in the chain's residue order, not by numeric
+    comparison, because insertion codes make residue numbers non-monotonic.
+    """
+
+    def __init__(self, chain_id, keys):
+        self.chain_id = chain_id
+        self.keys = set(keys)
+
+    def accept_model(self, model):
+        return 1 if model.id == 0 else 0
+
+    def accept_chain(self, chain):
+        return 1 if chain.id == self.chain_id else 0
+
+    def accept_residue(self, residue):
+        hetflag, resseq, icode = residue.get_id()
+        # standard=False keeps modified residues such as MSE. Waters and ligands are
+        # still excluded because they are not amino acids.
+        if not is_aa(residue, standard=False):
+            return 0
+        return 1 if (resseq, icode) in self.keys else 0
+
+    def accept_atom(self, atom):
+        # Keep the first altloc only, so a fragment has one coordinate per atom.
+        return 1 if (not atom.is_disordered()) or atom.get_altloc() in (" ", "A") else 0
+
+
+def main():
+    if len(sys.argv) < 5:
+        sys.exit("usage: cut-fragments.py <structure> <auth_chain_id> <outdir> <start:end> ...")
+    path, chain_id, outdir = sys.argv[1], sys.argv[2], sys.argv[3]
+    ranges = sys.argv[4:]
+
+    parser = MMCIFParser(QUIET=True) if path.endswith((".cif", ".mmcif")) else PDBParser(QUIET=True)
+    structure = parser.get_structure("s", path)
+    model = next(structure.get_models())
+    if chain_id not in [c.id for c in model]:
+        sys.exit(f"no chain {chain_id!r} in {path}")
+
+    ordered = [r.get_id()[1:] for r in model[chain_id] if is_aa(r, standard=False)]
+    index = {key: i for i, key in enumerate(ordered)}
+
+    os.makedirs(outdir, exist_ok=True)
+    io = PDBIO()
+    io.set_structure(structure)
+
+    written = []
+    for spec in ranges:
+        start_text, _, end_text = spec.partition(":")
+        start_key, end_key = parse_point(start_text), parse_point(end_text)
+        if start_key not in index or end_key not in index:
+            sys.exit(f"range {spec}: endpoint not present in chain {chain_id} (unmodelled or wrong numbering)")
+        lo, hi = index[start_key], index[end_key]
+        if lo > hi:
+            sys.exit(f"range {spec}: start comes after end in chain order")
+        keys = ordered[lo : hi + 1]
+        name = f"{os.path.basename(path).split('.')[0]}_{chain_id}_{spec.replace(':', '-')}.pdb"
+        out = os.path.join(outdir, name)
+        io.save(out, RangeSelect(chain_id, keys))
+        written.append((out, len(keys)))
+
+    for out, n in written:
+        print(f"{out}\t{n}")
+
+
+if __name__ == "__main__":
+    main()

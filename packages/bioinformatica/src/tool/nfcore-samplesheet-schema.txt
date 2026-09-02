@@ -1,0 +1,7 @@
+Get the exact samplesheet columns a specific nf-core pipeline expects, read from that pipeline's own assets/schema_input.json (the authoritative definition).
+
+Call this before building a samplesheet so you use the real column names, know which are required vs optional, and know the allowed values (enums) and file-path patterns. Pass the pipeline name; the release defaults to the latest stable one.
+
+It returns each column with: required/optional, type, allowed values or file-path/pattern constraints, and description. Read-only.
+
+After you have the columns, inspect the scientist's data folder by filename and header only (never read whole data files), map files to samples, and — if grouping or read pairing is ambiguous — ask the scientist before writing anything. Then validate with the samplesheet-validate tool before writing the CSV.

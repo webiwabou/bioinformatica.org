@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Propagate a representative's per-unit coordinates onto its identical cluster members.
+
+The expensive detection stage runs once per cluster representative; this copies the
+result onto the members. That is only valid if the collapse was EXACT — see below.
+
+Inputs:
+  <clusters.clstr>  CD-HIT cluster file (the .clstr beside the representatives FASTA)
+  <results.json>    {"<representative id>": [{"start": 42, "end": 93}, ...], ...}
+
+Output (JSON on stdout): the same shape, expanded to every member id, plus a
+`_propagation` block recording how many clusters and members were covered.
+
+THE TRAP THIS GUARDS AGAINST
+CD-HIT's global identity is the number of identical residues divided by the length of the
+SHORTER sequence. At -c 1.0 a sequence that is a perfect SUBSTRING of a longer one
+therefore clusters with it at 100%, and its own numbering is offset from the
+representative's — so copying coordinates across is silently wrong. Cluster with
+  -c 1.0 -n 5 -d 0 -s 1.0 -aL 1.0 -aS 1.0
+so that members are full-length identical, and this script additionally refuses to
+propagate across a length difference.
+
+`-d 0` matters too: the default truncates ids in the .clstr at 20 characters, which
+mangles composite accessions and makes members unmatchable.
+
+Usage: propagate-representatives.py <clusters.clstr> <results.json>
+"""
+import json
+import re
+import sys
+
+# Example member line:
+# 1\t437aa, >1a0d_A... at 100.00%
+# Representative line ends in '*' instead.
+MEMBER = re.compile(r"^\s*\d+\s+(\d+)(?:aa|nt),\s+>(.+?)\.\.\.\s*(\*|at\s+([0-9.]+)%)")
+
+
+def parse_clusters(path):
+    """[{"representative": id, "members": [(id, length), ...]}] in file order."""
+    clusters = []
+    current = None
+    for line in open(path):
+        if line.startswith(">Cluster"):
+            if current is not None:
+                clusters.append(current)
+            current = {"representative": None, "members": []}
+            continue
+        m = MEMBER.match(line)
+        if not m or current is None:
+            continue
+        length, ident, marker = int(m.group(1)), m.group(2).strip(), m.group(3)
+        current["members"].append((ident, length))
+        if marker == "*":
+            current["representative"] = ident
+    if current is not None:
+        clusters.append(current)
+    return clusters
+
+
+def main():
+    if len(sys.argv) != 3:
+        sys.exit("usage: propagate-representatives.py <clusters.clstr> <results.json>")
+    clusters = parse_clusters(sys.argv[1])
+    with open(sys.argv[2]) as fh:
+        results = json.load(fh)
+
+    out = {}
+    clusters_covered = 0
+    members_filled = 0
+    skipped = []
+
+    for cluster in clusters:
+        rep = cluster["representative"]
+        if rep is None:
+            skipped.append({"reason": "no representative marked", "members": [m for m, _ in cluster["members"]]})
+            continue
+        hits = results.get(rep)
+        if hits is None:
+            # The representative was screened and found nothing. That is a real result and
+            # propagates as "nothing" — it is not a missing value.
+            continue
+        clusters_covered += 1
+        rep_length = dict(cluster["members"]).get(rep)
+        for member, length in cluster["members"]:
+            if length != rep_length:
+                # A length difference means the collapse was not exact, so the
+                # representative's coordinates do not describe this sequence.
+                skipped.append(
+                    {
+                        "reason": "length differs from representative; coordinates would be offset",
+                        "member": member,
+                        "member_length": length,
+                        "representative": rep,
+                        "representative_length": rep_length,
+                    }
+                )
+                continue
+            out[member] = hits
+            if member != rep:
+                members_filled += 1
+
+    out["_propagation"] = {
+        "clusters": len(clusters),
+        "clusters_with_hits": clusters_covered,
+        "members_filled": members_filled,
+        "skipped": skipped,
+    }
+    json.dump(out, sys.stdout, indent=1)
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()

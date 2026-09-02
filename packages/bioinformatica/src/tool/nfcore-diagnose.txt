@@ -1,0 +1,7 @@
+Diagnose why an nf-core / Nextflow run failed, and how to recover.
+
+Give it the run directory (`runDir`, where `.nextflow.log` lives) and/or the error text you captured from the failed `nextflow run`. It reads the log and the failed task's own error, identifies the cause (out-of-memory/resources, container backend, Nextflow version, input/samplesheet, parameter, pipeline/revision, external network, or an in-tool error), and reports whether Bioinformática.org can fix it and whether `-resume` will help.
+
+Follow the recovery sequence: diagnose → explain the cause and fix in plain language → offer to apply the fix (with approval) if it's reparable → re-run with `-resume` rather than starting over. If the diagnosis says the cause is beyond Bioinformática.org (hardware, permissions, an external outage, or a data-specific tool error), say so honestly and stop — do not retry blindly.
+
+Read-only: it inspects logs and classifies; it does not change anything or re-run.

@@ -1,0 +1,21 @@
+Run an adaptive scientific critique of an analysis, shaped to the KIND of analysis.
+
+Call this after producing or interpreting a result — and before finalizing a run whose
+design you can already assess. It returns the rigor concerns that actually apply to this
+type of analysis (multiple testing, batch/confounders, replication/power, and the
+assumptions specific to differential expression, differential abundance, variant calling,
+or enrichment), plus any conservative soft-block gate that trips.
+
+This is not a fixed checklist — pass what the analysis is (a description or the pipeline
+name) so the concerns are tailored. Pass what you know about the design so gates can be
+evaluated:
+  - replicatesPerGroup: biological replicates per group, if you determined it (e.g. from
+    the samplesheet)
+  - groups: number of groups being compared
+  - multipleTestingApplied: whether FDR/adjusted p-values are being used
+
+How to use the result: weave the concerns into your interpretation honestly — they FLAG
+and explain, they do NOT block. Exception: if a soft-block gate trips (the analysis is
+invalid as configured, e.g. too few replicates to test), pause and require the scientist's
+explicit confirmation before proceeding — a soft block, never silent, never a permanent
+refusal. Present the concerns briefly; do not nag an experienced user.

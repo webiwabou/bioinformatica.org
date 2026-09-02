@@ -1,0 +1,20 @@
+Save a human-readable report or written analysis to a file the scientist chose.
+
+Use this for the write-ups a scientist actually reads and keeps — an interpretation of
+results, a literature synthesis, a methods/findings summary — NOT for internal
+bookkeeping (use nfcore_manifest / nfcore_record for provenance records).
+
+Claim typing (required in saved reports): tag every substantive statement in `body`
+by what backs it, putting the tag at the start of the sentence or bullet it governs:
+  [computed]       — backed by this analysis's own run or artifacts
+  [cited]          — backed by an external source, cited inline (e.g. a PMID)
+  [model-inferred] — your own reasoning, interpretation, or hypothesis
+Example: `- [cited] TP53 regulates apoptosis (Smith et al., 2023, PMID 12345678).`
+These explicit tags belong ONLY in saved reports; do not use them in ordinary chat.
+The tool warns if the report has no typed claims or uses a mis-spelled tag.
+
+Location: reports have no default folder — ask the scientist where to save first, then
+pass that as `path`. Saving writes a file, so it asks for approval.
+
+The tool renders a title, a provenance stamp, and a legend of the claim types, then
+your `body` verbatim, and returns a summary of the claim typing it found.

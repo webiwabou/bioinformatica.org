@@ -1,0 +1,7 @@
+Search the biomedical literature (PubMed) for papers on a topic, returning full citations.
+
+Use this whenever a claim needs a literature source — a method choice, a biological interpretation, a tool comparison, prior work on an organism or gene. Pass a `query` in PubMed syntax (plain keywords work; you can also use field tags like "BRCA1[gene]" or author/date filters). Each result comes back as a complete citation (authors, title, journal, year, PMID, DOI, URL) so any statement you draw from it can carry its source.
+
+This is the primary path for literature (a structured, citable NCBI API). Only fall back to general web search for genuine gaps — recent preprints or papers not yet indexed in PubMed — never as a substitute for it.
+
+To read a specific paper's abstract, use pubmed_fetch with its PMID. Read-only.
