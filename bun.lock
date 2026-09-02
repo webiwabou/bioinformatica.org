@@ -26,7 +26,7 @@
     },
     "packages/bioinformatica": {
       "name": "bioinformatica",
-      "version": "1.17.18",
+      "version": "0.1.0",
       "bin": {
         "bioinformatica": "./bin/bioinformatica",
       },
@@ -159,7 +159,7 @@
       "name": "@bioinformatica/cli",
       "version": "1.17.18",
       "bin": {
-        "lildax": "./bin/lildax.cjs",
+        "bioinformatica-cli": "./bin/bioinformatica-cli.cjs",
       },
       "dependencies": {
         "@bioinformatica/core": "workspace:*",
