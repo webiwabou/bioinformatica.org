@@ -80,3 +80,16 @@ jobs:
         run: |
           cd packages/bioinformatica/dist
           sha256sum --check SHA256SUMS
+
+      # Un draft no es una release: no sale en `releases/latest`, que es
+      # exactamente la URL que pide el instalador, así que dejarla en draft
+      # equivale a no haber publicado nada. Se publica al final, cuando los
+      # binarios están subidos y sus checksums verificados, y no antes.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ steps.version.outputs.tag }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false \
+            --latest
