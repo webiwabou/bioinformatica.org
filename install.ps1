@@ -77,14 +77,33 @@ function Confirm-Step($question) {
 
 # Ejecuta wsl.exe y devuelve su salida como lineas limpias.
 #
+# Hay que limpiar tres cosas, y la tercera es la que muerde. WSL escribe en
+# UTF-16 salvo que WSL_UTF8 se lo impida, asi que al leerlo como texto llega un
+# byte nulo entre cada letra y una marca de orden de bytes delante de todo; y en
+# un sistema que decodifica esos bytes como UTF-8, la marca se convierte en un
+# caracter de reemplazo. Si no se quitan los tres, el nombre de la primera
+# distribucion arrastra basura invisible delante, y entonces ni se puede
+# comparar con la lista de distribuciones de servicio ni se puede pasar a
+# `wsl -d`.
+#
 # El ErrorActionPreference local tapa el suyo del ambito exterior: con "Stop",
 # redirigir el stderr de un ejecutable nativo hace que PowerShell 5.1 lance
 # NativeCommandError aunque el comando haya ido bien.
+# La limpieza es una sola expresion regular a proposito. Un bucle sobre una
+# lista de caracteres a quitar parece mas legible y esconde una trampa: los
+# bloques de ForEach-Object no abren un ambito propio, y los nombres de variable
+# de PowerShell no distinguen mayusculas, asi que un `foreach ($x in $X)` ahi
+# dentro destruye la lista que esta recorriendo en cuanto termina la primera
+# linea. El resultado era que la primera distribucion salia limpia y las demas
+# no, que es exactamente el fallo mas dificil de ver.
+$WSL_NOISE = "[\u0000\uFEFF\uFFFD]"
+
 function Get-WslOutput([string[]]$WslArgs) {
     $ErrorActionPreference = "SilentlyContinue"
     $raw = & wsl.exe @WslArgs 2>$null
     if ($null -eq $raw) { return @() }
-    return @($raw | ForEach-Object { ($_ -replace "`0", "").Trim() } | Where-Object { $_ -ne "" })
+    return @($raw | ForEach-Object { [regex]::Replace([string]$_, $WSL_NOISE, "").Trim() } |
+        Where-Object { $_ -ne "" })
 }
 
 # Ejecuta wsl.exe descartando su salida y devuelve solo el codigo de salida.
@@ -96,6 +115,12 @@ function Invoke-WslQuiet([string[]]$WslArgs) {
 }
 
 # Las distribuciones en las que tiene sentido instalar algo.
+#
+# Quien llame a esto tiene que envolverlo en @(). PowerShell deshace un array de
+# un solo elemento al devolverlo de una funcion, asi que con una unica
+# distribucion instalada -el caso normal- lo que llega es la cadena "Ubuntu" y
+# no una lista, y entonces [0] devuelve "U". Con dos distribuciones funciona,
+# que es justo lo que hace que el fallo no se vea.
 function Get-UserDistros() {
     return @(Get-WslOutput @("-l", "-q") | Where-Object { $ServiceDistros -notcontains $_ })
 }
@@ -136,7 +161,7 @@ function Invoke-BioinformaticaInstall {
         return 1
     }
 
-    $distros = Get-UserDistros
+    $distros = @(Get-UserDistros)
 
     if ($distros.Count -eq 0) {
         Write-Title "Falta WSL"
@@ -206,8 +231,8 @@ function Invoke-BioinformaticaInstall {
     # WSL 1 no vale del todo: no tiene un kernel real, y ni la integracion de Docker
     # Desktop ni buena parte de lo que un pipeline monta encima se comportan igual.
     # Se avisa y se sigue, porque convertirla tarda y es decision del usuario.
-    $versions = Get-WslOutput @("-l", "-v")
-    $line = $versions | Where-Object { ($_ -replace "^\*\s*", "") -match "^$([regex]::Escape($Distro))\s" }
+    $versions = @(Get-WslOutput @("-l", "-v"))
+    $line = @($versions | Where-Object { ($_ -replace "^\*\s*", "") -match "^$([regex]::Escape($Distro))\s" })[0]
     if ($line -and ($line -match "\s1\s*$")) {
         Write-Muted "Aviso: '$Distro' corre en WSL 1. Para pasarla a WSL 2:"
         Write-Muted "  wsl --set-version $Distro 2"
@@ -265,13 +290,15 @@ function Invoke-BioinformaticaInstall {
 
     New-Item -ItemType Directory -Force -Path $ShimDir | Out-Null
 
+    # El here-string va sin indentar a proposito: PowerShell exige el terminador
+    # en la columna 0, y su contenido entra literal en el fichero .cmd.
     $shim = @"
-    @echo off
-    rem Lanzador generado por el instalador de Bioinformatica.org.
-    rem El agente vive dentro de WSL ($Distro); esto solo lo llama, situandolo en la
-    rem carpeta desde la que has escrito el comando.
-    wsl.exe -d $Distro --cd "%CD%" -- $binary %*
-    "@
+@echo off
+rem Lanzador generado por el instalador de Bioinformatica.org.
+rem El agente vive dentro de WSL ($Distro); esto solo lo llama, situandolo en la
+rem carpeta desde la que has escrito el comando.
+wsl.exe -d $Distro --cd "%CD%" -- $binary %*
+"@
 
     Set-Content -Path $ShimPath -Value $shim -Encoding ASCII
     Write-Muted "Lanzador escrito en $ShimPath"
