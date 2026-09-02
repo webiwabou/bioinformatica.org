@@ -263,6 +263,15 @@
         padding-right: 1rem;
       }
 
+      .cmd-label {
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 600;
+        margin: 1.25rem 0 -0.4rem;
+      }
+
       .copy {
         position: absolute;
         top: 0.55rem;
@@ -381,8 +390,8 @@
             </div>
             <div>
               <strong>Windows</strong>
-              Abre PowerShell como administrador, ejecuta <code>wsl --install</code> y luego abre
-              <em>Ubuntu</em>. Nextflow necesita Linux.
+              Pulsa la tecla <kbd>Windows</kbd>, escribe <em>PowerShell</em> y pulsa
+              <kbd>Enter</kbd>.
             </div>
           </div>
         </div>
@@ -392,9 +401,21 @@
         <div class="num">2</div>
         <div class="body">
           <h2>Copia esta línea, pégala y pulsa Enter</h2>
+          <p class="cmd-label">macOS y Linux</p>
           <div class="cmd" data-copy="curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash">
             <pre><span class="prompt">$ </span>curl -fsSL https://webiwabou.github.io/bioinformatica.org/install | bash</pre>
           </div>
+          <p class="cmd-label">Windows</p>
+          <div class="cmd" data-copy="irm https://webiwabou.github.io/bioinformatica.org/install.ps1 | iex">
+            <pre><span class="prompt">&gt; </span>irm https://webiwabou.github.io/bioinformatica.org/install.ps1 | iex</pre>
+          </div>
+          <p class="note">
+            <strong>En Windows</strong>, Nextflow no puede correr de forma nativa: necesita Linux. El
+            propio Windows lo trae, se llama WSL, y el instalador se encarga: si no lo tienes te
+            enseña el comando que lo instala y te pide permiso antes de nada — eso sí pide permisos
+            de administrador y reiniciar una vez. Después, el agente vive dentro de ese Linux y tú lo
+            llamas desde PowerShell como cualquier otro programa.
+          </p>
           <p class="note">
             Tarda menos de un minuto. Descarga el binario que corresponde a tu sistema desde las
             <a href="https://github.com/webiwabou/bioinformatica.org/releases">releases de GitHub</a>,
@@ -403,9 +424,10 @@
             personal.
           </p>
           <p class="note">
-            Pegar un comando que no has leído es un acto de confianza. Puedes
-            <a href="./install">leer el script antes de ejecutarlo</a>: es bash, hace exactamente lo
-            que dice el párrafo de arriba y nada más.
+            Pegar un comando que no has leído es un acto de confianza. Puedes leer antes lo que
+            hace: <a href="./install">el script de macOS y Linux</a> y
+            <a href="./install.ps1">el de Windows</a> hacen exactamente lo que dicen los párrafos de
+            arriba y nada más.
           </p>
         </div>
       </div>

@@ -25,6 +25,7 @@ on:
     paths:
       - "www/**"
       - "install"
+      - "install.ps1"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -55,15 +56,23 @@ jobs:
           cp -R www/. _site/
           rm -f _site/README.md # nota para quien lee el repositorio, no parte del sitio
           cp install _site/install
+          cp install.ps1 _site/install.ps1
 
-      # El sitio es estático y no lleva build, así que lo único que puede fallar en
-      # silencio es que el instalador no llegue. Se comprueba aquí y no en el
-      # navegador de quien lo intente.
-      - name: Check the installer is being published
+      # El sitio no lleva build, así que lo único que puede fallar en silencio es
+      # que un instalador no llegue, o llegue roto. El de Windows además no se
+      # puede ejecutar en ninguna máquina de la que este proyecto disponga, así
+      # que como mínimo se comprueba que analiza sin errores de sintaxis: un
+      # fallo ahí lo descubriría la primera persona que lo pegase.
+      - name: Check both installers are published and parse
+        shell: bash
         run: |
           test -s _site/install
+          test -s _site/install.ps1
           head -1 _site/install | grep -q '^#!/usr/bin/env bash'
+          bash -n _site/install
           grep -q 'webiwabou.github.io/bioinformatica.org/install' _site/index.html
+          grep -q 'webiwabou.github.io/bioinformatica.org/install.ps1' _site/index.html
+          pwsh -NoProfile -File script/check-powershell-syntax.ps1 _site/install.ps1
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

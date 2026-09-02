@@ -62,6 +62,21 @@ El instalador acepta `--version <v>` para fijar una versión, `--binary <ruta>` 
 instalar un binario ya compilado y `--no-modify-path` para no tocar la configuración del
 shell; `BIOINFORMATICA_INSTALL_REPO` cambia el repositorio de origen.
 
+En Windows, desde PowerShell:
+
+```powershell
+irm https://webiwabou.github.io/bioinformatica.org/install.ps1 | iex
+```
+
+Nextflow necesita un entorno POSIX, así que ese script instala el agente **dentro de WSL**:
+si no hay ninguna distribución de usuario, enseña `wsl --install` y pide permiso antes de
+elevar nada; si la hay, ejecuta ahí el mismo `install` de arriba y deja en el `PATH` de
+Windows un `bioinformatica.cmd` que lo invoca situándolo en el directorio actual. El
+agente vive en Linux y se llama desde PowerShell como cualquier otro programa. La
+alternativa —un agente nativo de Windows puenteando a WSL— se descartó: obligaría a
+traducir cada ruta que el agente escribe en una samplesheet, y dejaría los datos en el
+sistema de ficheros lento de WSL sin decir por qué.
+
 Compilar desde el código:
 
 ```bash
